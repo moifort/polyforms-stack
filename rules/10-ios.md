@@ -82,23 +82,24 @@ that triggers a mutation shows its progress and is disabled while it runs.
 
 ## Snapshots
 
-A screen that changes slowly and that the person recognises keeps what it showed last on disk and
-reopens on it. Read synchronously in the ViewModel's `init`, written after each successful load
-off the main actor, one file per view and filter, **never more than the first page**, versioned
-(bump when the type changes shape; an older file is ignored), cleared at sign-out and account
-deletion, never for data worthless when stale (a quota, a subscription state). The refresh that
-follows animates rows into place; a first fill over an empty screen does not animate. Images are
-cached by what they are, not by their signed URL. No normalised client cache beyond this: its
-freshness bugs cost more than it saves.
+**Only for a screen that changes slowly and that the person recognises** (a library, a list of
+series): it keeps what it showed last on disk and reopens on it. Never for a screen whose state
+must be exact at opening (a quota, a subscription, an inventory count, a cart): a stale snapshot
+there misleads. When it applies: read synchronously in the ViewModel's `init`, written after each
+successful load off the main actor, one file per view and filter, **never more than the first
+page**, versioned (bump when the type changes shape; an older file is ignored), cleared at
+sign-out and account deletion. The refresh that follows animates rows into place. Images are
+cached by what they are, not by their signed URL. No normalised client cache beyond this.
 
 ## Pagination
 
 Long lists load by **cursor, never offset**: an offset shifts under a list that changed between
 two pages. Page size is sized to the screen, not the dataset; the server caps a page. Prefetch
 before the end, well below the page size. A load-more row closes the list while there is more,
-with a retry once a page failed. A **generation token** guards every load: a page asked before a
-reload is dropped. After an edit deep in the list, reload keeping depth, swapped in at once. When
-the write named one row, patch that row rather than reload.
+with a retry once a page failed. **A page asked before a reload is never appended to the list that
+replaced it**, and an edit deep in a list never shrinks it. The mechanisms Shiori uses for that
+(generation token, reload keeping depth, patching a named row) are in the `ios-feature` skill as
+a pattern to copy, not a requirement.
 
 ## Change notices
 
@@ -130,6 +131,49 @@ a no-cache option in tests. The unit test target runs in CI on every push.
 - A tappable row answers on its whole width: a `.plain` button whose label carries
   `.contentShape(.rect)`, set in the row view. Never `onTapGesture` in place of a button.
 - Native components, no custom re-skins.
+- **Accessibility**: every icon without text carries a label; every component is checked once
+  at the largest Dynamic Type size (text wraps, nothing is clipped, nothing overlaps); colours
+  never carry a meaning alone (orange and green dates also say it in words).
+
+## Screen patterns
+
+The shapes every app repeats, so they are not re-explained per project. Code in the
+`ios-feature` skill and in the shared component package.
+
+**A list row.** Image or icon on the left; the text block **top-aligned** beside it: title, one
+secondary line, at most one tag; a status tag in the top corner when the list is not already
+sectioned by it. The whole row opens the detail page. The one frequent action is a swipe action;
+the context menu mirrors the detail page's menu. A row never carries more than three pieces of
+information below its title: the rest belongs to the detail page.
+
+**A detail page (fiche).** Opened from a row as a sheet, or pushed when it is the tab's own
+object. From top to bottom: a header section (image, title, one line under it, the state), the
+facts as labelled rows with an icon (long press copies the value), the long text, the actions
+that belong to the object. **The toolbar**: close (`xmark`) on the left; on the right, the one
+action the person takes over and over as its own icon (a favourite heart, a check), then a `…`
+menu with the rest, edit first, delete last and red. A single fact is edited **inline in its
+row** (tap, type, done), never through a form; the full edit form is one sheet from the menu.
+Only known fields are drawn: an absent fact has no row, not an empty one.
+
+**A tab's main screen.** Large title, icon-only actions on the right (add, filter, settings),
+search attached to the list when there is one, sections with plain headers, the empty state
+drawn in the list body with the one action that fills it.
+
+**A form or a sheet that asks something.** Cancel (`xmark`) left, confirm (`checkmark`) right as
+an `AsyncToolbarButton`; the first field focused on appear; a picker shows its current value in
+its row; destructive confirmation as a dialog, never a toggle.
+
+## Shared component package
+
+The pure atoms, molecules and styles that carry no business meaning live in the shared Swift
+package `PolyformsUI`, versioned by tag and tracked by Renovate like any dependency:
+`AsyncButton`, `AsyncToolbarButton`, `ToolbarIconButton`, `EmptyState`, `LabeledInfoRow`,
+`LoadMoreRow`, `MenuPicker`, `SegmentedBar`, `TagList`, `RowChip`, `WidgetCard`, star ratings,
+the row and caption label styles, `Copyable`, the edge-to-edge separator, the AI glow. Each ships
+with its preview, and the package carries a catalogue app showing every component in every
+state. An app's `Shared/Components/` holds only what is specific to that app; a component that
+turns out generic moves up to the package with a version bump. Organisms (a book row, a cover
+tile) stay in their app: they carry the product.
 
 ## Build and capture
 
