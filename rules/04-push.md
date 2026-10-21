@@ -1,7 +1,7 @@
 # Push
 
-A push never starts on its own. When asked, this checklist applies in order, then the push, then
-the watch.
+A push never starts on its own: only when the person asks for it explicitly. Then this checklist
+applies in order, then the push, then the watch, then the cleanup.
 
 ## Before
 
@@ -44,11 +44,21 @@ A failure is **fixed forward**: find the cause, fix it with a new verified commi
 again until green. Never force-push, never amend a pushed commit. If the cause is outside the code
 (infrastructure, a secret), say so instead of guessing.
 
-## Simulators
+## Cleanup after the push
 
-After a successful push, the `shutdown-simulators-after-push` hook shuts every booted simulator
-and quits Simulator.app (they otherwise hold 50 to 70 % of the CPU). Do not relaunch them unless
-asked.
+A successful push closes the session's working set:
+
+- the `shutdown-simulators-after-push` hook shuts every booted simulator and quits Simulator.app
+  (they otherwise hold 50 to 70 % of the CPU); do not relaunch them unless asked;
+- stop every process started for the task that is no longer useful: dev server, watcher,
+  preview, background build;
+- delete what the session generated and that is not meant to be kept: screenshot harness builds
+  and their derived data under `/tmp`, capture files, scratch scripts, temporary clones and
+  worktrees (`git worktree remove`, then `git worktree prune`), backups of files taken before an
+  edit;
+- leave the working tree with nothing untracked that belongs to the session.
+
+What is kept is what the repository holds; everything else was scaffolding.
 
 ## No CI for prose
 
