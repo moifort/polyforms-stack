@@ -16,26 +16,24 @@ commit style, changelog never touched, verification before commit, deprecate rat
 API field, deploy only through CI, never terraform or migrate from the machine.
 
 ## Overlap guard (first)
-- If `/tmp/sentry-autofix.lock` exists and is less than 5 hours old, a previous pass is running:
-  stop and report it. Otherwise touch it, and delete it at the very end, also on an early stop.
-- Remove any `/tmp/sentry-fix-*` directory older than 5 hours (`git worktree remove --force` for a
-  worktree, `rm -rf` for a clone), then `git worktree prune` in every local checkout found below.
+A run starts on a fresh machine, so there is no lock file: before touching an issue, check that no
+open pull request and no commit of the last 14 days on `main` carries `Fixes <SHORT-ID>`; if one
+does, the issue is being handled, skip it.
 
 ## Sentry access
 - Org `{{SENTRY_ORG}}`, API `https://sentry.io/api/0/`.
-- Token: `SENTRY_AUTH_TOKEN` from the project's `.env` if present, else from
-  `{{SENTRY_TOKEN_FALLBACK_ENV}}`. Never print it, never write it into a file or a commit. A token
-  that can read but not resolve is noted in the report, not retried.
+- In the cloud, the token is a **network secret** of the cloud environment for the host
+  `sentry.io`: the proxy adds the `Authorization` header to every request to that host, so call
+  the API with `curl` **without** an authorization header and never look for a token in a file or
+  a variable. On a desktop run, the token is `SENTRY_AUTH_TOKEN` in the project's `.env`. Never
+  print it, never write it into a file or a commit.
 - Logger extras appear under `.context` in the event JSON.
 
-## Project discovery (no fixed list)
-1. `GET /organizations/{{SENTRY_ORG}}/projects/` gives the slugs; a slug is `<name>-<platform>`
-   and the GitHub repository is `{{GITHUB_OWNER}}/<name>`.
-2. Local checkout: the directory under `{{CODE_DIR}}` whose `origin` points at that repository
-   (scan `git remote get-url origin`, never guess from the name).
-3. No checkout but `gh repo view` succeeds: clone into `/tmp/sentry-fix-<name>-<date-hour>` and
-   work there as in a worktree, fresh at every pass, removed at the end.
-4. Neither: list the project as unmapped and skip it.
+## Projects
+The task's repositories are cloned at the start of the run: work in them. A Sentry project
+`<name>-<platform>` maps to the repository `{{GITHUB_OWNER}}/<name>`; a Sentry project whose
+repository is not among the task's repositories is listed as unmapped in the report and skipped.
+Add it to the task to cover it.
 
 ## Steps
 1. Per project: `GET /projects/{{SENTRY_ORG}}/{slug}/issues/?query=is:unresolved&statsPeriod=14d&sort=freq`.
@@ -46,22 +44,26 @@ API field, deploy only through CI, never terraform or migrate from the machine.
    resolve step only. A regression (`isRegression`) means the fix was wrong: investigate again.
 3. Fetch the latest event (stack, message, `.context`, tags, release). Find the root cause in the
    code. Without a confident root cause, do not guess: report "to investigate" with findings.
-4. Work in a worktree: `git worktree add /tmp/sentry-fix-<repo>-<date-hour> origin/main --detach`,
-   install dependencies, follow that project's `CLAUDE.md` and the stack rules.
+4. In the repository's clone (already on `main`), install dependencies, follow that project's
+   `CLAUDE.md` and the stack rules.
 5. Fix with a regression test where the code is testable (test first). One commit per issue or
    shared root cause, minimal.
 6. Verify as the rules prescribe (typecheck, the three test families separately, linter, schema
    check if the schema changed, an app build for app changes). Never commit a failing fix.
 7. Commit: conventional commit, English, body with the root cause, trailer `Fixes <SHORT-ID>`,
    then the `Co-Authored-By` trailer. Never touch the changelogs.
-8. Push: `git fetch origin && git rebase origin/main`, then `git push origin HEAD:main`. A
-   conflicting rebase is aborted and reported, never forced.
+8. Push **to `main`**, not to a `claude/` branch: `git fetch origin && git rebase origin/main`,
+   then `git push origin HEAD:main`. A conflicting rebase is aborted and reported, never forced.
+   An **app (iOS) fix cannot be built here** (no Xcode): push it as a branch `claude/sentry-<id>`,
+   open a pull request with `gh pr create`, and let CI build it; the next pass merges it when CI
+   is green.
 9. Watch CI for the pushed commit (`gh run list --json databaseId,headSha,name,status,conclusion`
    filtered on `headSha`, then `gh run watch <id> --exit-status`). On failure, fix forward if the
    cause is clear, otherwise revert, push the revert, report.
 10. Once CI is green, Deploy included: `PUT /organizations/{{SENTRY_ORG}}/issues/{id}/` with
     `{"status":"resolvedInNextRelease"}`, never plain `resolved`.
-11. Remove the worktree, delete the lock.
+11. Merge the pull requests opened by earlier passes whose CI is green (`gh pr list --author @me
+    --label sentry`), then resolve their issues as in step 10.
 
 ## Limits
 - At most 3 fixes per pass, prioritised by event count times users affected.
