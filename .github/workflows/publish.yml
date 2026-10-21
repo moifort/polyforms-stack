@@ -1,0 +1,32 @@
+name: Publish
+
+# A `vX.Y.Z` tag publishes the package through npm trusted publishing (OIDC): no
+# token to store or rotate. The tag must match package.json and CHANGELOG.md must
+# have the version's entry, which the upgrade routine reads first.
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - run: bun run preflight
+      - name: The tag, the package and the changelog agree
+        run: |
+          set -euo pipefail
+          version="${GITHUB_REF_NAME#v}"
+          test "$(bun -e 'console.log(require("./package.json").version)')" = "$version"
+          grep -q "^## ${version} " CHANGELOG.md
+      - run: npm publish --provenance --access public

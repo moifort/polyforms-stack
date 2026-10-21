@@ -1,0 +1,47 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  preflight:
+    name: 🧪 Preflight
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - run: bun run preflight
+
+  # A project generated with the backend stack must pass its own checks: the
+  # templates are code, and a template that breaks is caught here, not in Bazar.
+  generated-backend:
+    name: 🏗️ Generated backend project
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          path: stack
+      - uses: oven-sh/setup-bun@v2
+      - run: (cd stack && bun install --frozen-lockfile)
+      - name: Generate
+        run: |
+          mkdir -p sample && cd sample && git init -q
+          bun ../stack/bin/stack.ts init --stacks backend
+          sed -i "s#\"@polyforms/stack\": \"[^\"]*\"#\"@polyforms/stack\": \"file:../stack\"#" package.json
+      - name: Check
+        working-directory: sample
+        run: |
+          bun install
+          bun run lint
+          bun run typecheck
+          bun run test:unit
+          bun run test:int
+          bun run test:feat
+          bun run build
