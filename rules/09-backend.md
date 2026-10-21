@@ -49,8 +49,13 @@ memoisation).
   on `userId`.
 - A shared document (a catalogue two users converge on) holds no reference to any user and is
   keyed deterministically by what identifies it, so the paid call that produced it is paid once.
-- **Pay the migration before the feature.** Adding a boolean to production records costs a
-  migration: a field a certain upcoming feature needs is added now, with its default.
+- **A field for a decided feature is added before production data exists.** Before the first
+  release, adding a field costs nothing; after it, it costs a migration on every record. So a
+  field a feature on the roadmap will need (a `hidden` flag for sharing planned next month) is
+  added now with its default. Only for a decided feature: a field "in case" is dead weight to
+  maintain in fixtures and to migrate away later.
+- Renames, restructures and value changes go through a migration, see
+  [11-ops.md](11-ops.md#migrations).
 - Filtering, sorting and pagination happen in Firestore, never in memory after loading all.
 - Multiple writes go through one batch; mass deletions through successive batches.
 
@@ -62,10 +67,27 @@ sectioning a library reads no catalogue document). When a nested field needs the
 loader before shipping it. The only server-side cache is per incoming request: a domain query
 called several times during one call reads once.
 
+## Scheduled routes
+
+A route called by Cloud Scheduler is **idempotent**: the scheduler retries on failure and a
+replayed pass must neither pay a call twice nor notify twice. The route records what it did (a
+document per pass or per item, keyed deterministically) and skips what is already done; a
+notification carries an id that makes a second send a no-op. The route is protected by a token and
+answers quickly, doing the work in bounded batches.
+
 ## Observability
 
-Never `console.*`. One logger per component, `createLogger(tag)`. Every `warn` and `error` is
-reported to Sentry, so a caught-and-recovered failure is logged, never swallowed. Keep the message
+Never `console.*`. One logger per component, `createLogger(tag)`. Three levels with a meaning:
+
+| Level | Meaning | Goes to Sentry |
+|---|---|---|
+| `error` | Our code is broken or an invariant failed; someone must fix it | Yes |
+| `warn` | Recovered, but a human should look one day (a fallback taken, a limit approached) | Yes |
+| `info` | Expected, including expected failures: a third-party 503, an item a provider lacks, a cancelled request. Counted, never alerted | No |
+
+A caught-and-recovered failure is logged at the level its meaning says, never swallowed. An
+expected failure logged as `warn` creates a Sentry issue nobody can fix and trains the triage
+routine to ignore warnings. Keep the message
 constant and pass the rest apart (`logger.warn('cover lookup failed', { error, isbn13 })`), so
 Sentry groups one problem into one issue and keeps the stack. Sentry activates only in a built
 bundle with its DSN set, never in local development. The logger's extras appear under `.context`
@@ -78,11 +100,12 @@ Three suffixes, three CI workflows, co-located with the code:
 | Suffix | Scope |
 |---|---|
 | `*.unit.test.ts` | Primitives and business rules, pure functions |
-| `*.int.test.ts` | Commands and queries against the in-memory fake Firestore |
-| `*.feat.test.ts` | Business scenarios through the built GraphQL schema: error codes, gates, read budgets |
+| `*.int.test.ts` | Commands and queries against the in-memory fake Firestore, through the real repository code: converters, date transposition, batches |
+| `*.feat.test.ts` | The API contract through the built GraphQL schema: for each operation, the shape and values of its answer, its error codes, its gates, its read budget. A change in what an operation returns fails here before an app notices |
 
-- Storage is mocked with `mock.module('~/system/firebase', () => ({ db: fakeDb }))`. The fake
-  has no subcollections, matching the flat layout.
+- Only `db()` is faked (`mock.module('~/system/firebase', () => ({ db: fakeDb }))`): the
+  repository runs as in production, with its typed converters and its date handling, so a test
+  proves the real storage code. The fake has no subcollections, matching the flat layout.
 - Read budgets are asserted with the split counters `docReads` and `queryReads`, never the total.
 - The per-request memoisation is active inside a test and reset between tests: reseeding between
   two calls of the same query in one test returns the stale result. Use two tests.
