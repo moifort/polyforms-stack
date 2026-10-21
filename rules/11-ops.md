@@ -30,18 +30,34 @@ of truth read by Terraform, not a console action.
 ## API evolution
 
 The GraphQL schema is not versioned: installed builds keep asking for what they were built
-against. A field or an argument the app stops using is **deprecated in the same commit**, never
-removed there; `{{SCHEMA_CHECK_COMMAND}}` in CI refuses a removal not preceded by a deprecation.
-At every store release, `{{DEPRECATIONS_COMMAND}}` lists what a build on sale for two weeks no
-longer asks for; one commit removes it and raises the minimum supported build, which sends older
-builds to the update screen. The gate fails open: if the configuration is unreachable, the app
-stays usable.
+against, for weeks after a release. So the schema only grows, and what the app stops using leaves
+in two steps.
 
-| Change | What to do |
-|---|---|
-| Added field, query, mutation, optional input | Nothing |
-| Field the app stops using | Deprecate it in the same commit |
-| Removal, rename, stricter input, changed enum values | Ship backend and app together, deprecate, remove at the next release through the routine |
+1. **Deprecate, in the commit where the app stops asking.** The operations stop selecting the
+   field or argument; the server marks it with a `deprecationReason` that names the version and
+   the date it was deprecated and what replaces it (`"since 1.3 (2026-10-21): use coverSources"`).
+   The resolver keeps working. `{{SCHEMA_CHECK_COMMAND}}` in CI refuses any breaking change that
+   was not deprecated first.
+2. **Remove, once no build on sale asks for it.** `{{DEPRECATIONS_COMMAND}}` finds, for each
+   deprecated element, the first build whose operations no longer select it and compares it
+   with what the store sells: removable when a build without it has been on sale for **fourteen
+   days**, in grace until then, waiting while the store still sells a build that asks for it.
+   One commit removes the removable elements (schema, resolver, the code and tests only they
+   used) and raises the minimum supported build to the floor the script proposes, which sends
+   older builds to the update screen at their next launch. Several releases in one day change
+   nothing: the fourteen days count from the release that stopped asking, not from the next one.
+
+The removal runs as a **scheduled routine** (monthly by default, see
+[16-routines.md](16-routines.md)), and may be run by hand at a release. The comparison key is the
+build number, never the marketing version. The gate fails open: if the configuration is
+unreachable, the app stays usable. A deploy whose floor is above the build on sale fails: readers
+must never be blocked with no update to install.
+
+| Change | Breaks installed builds | What to do |
+|---|---|---|
+| Added field, query, mutation, optional argument, enum value | No | Nothing: an unknown enum value is read as a neutral one by the app |
+| Field or argument the app stops using | No | Deprecate it in the same commit |
+| Removal, rename, type change, argument made required, non-null made nullable | Yes | Deprecate first; the routine removes it fourteen days after a build without it is on sale |
 
 ## Scale to zero
 
@@ -65,10 +81,13 @@ Source maps upload is part of the release workflow, never asked again.
 
 ## Backups and recovery
 
-The `(default)` database has delete protection and seven-day point-in-time recovery; there is no
-backup outside it. When data is lost (deleted documents, a failed migration, a deleted database or
-project) follow the project's `docs/data-recovery.md` before acting, and never restore the whole
-database over live writes.
+The `(default)` database has delete protection and seven-day point-in-time recovery. Until the
+app has paying users, there is no backup outside it; from the first paying user, a weekly
+managed export of the database to a bucket of the project (`gcloud firestore export`, run by
+Cloud Scheduler, 90-day lifecycle on the bucket) is provisioned by Terraform: a deletion found on
+the eighth day is then still recoverable. When data is lost (deleted documents, a failed
+migration, a deleted database or project) follow the project's `docs/data-recovery.md` before
+acting, and never restore the whole database over live writes.
 
 ## Secrets
 
@@ -81,9 +100,15 @@ compared by fingerprint (`printf '%s' "$k" | shasum`), never displayed.
 ## Dependencies
 
 Renovate, self-hosted in a nightly workflow: `config:recommended`, non-major updates grouped in
-one automerged pull request, majors automerged one by one, weekly lockfile maintenance. Every
+one pull request automerged when CI is green, weekly lockfile maintenance. Every
 `allowedVersions` bound carries its reason in `description` (a peer dependency the deploy's
-stricter package manager rejects, a framework not yet on the new major). A strict install replayed
-on the build artefact catches what the permissive local install let through. The package of this
-stack has its own rule: label `stack`, no automerge, handled by the upgrade routine
-([16-routines.md](16-routines.md)).
+stricter package manager rejects, a framework not yet on the new major). A strict install
+replayed on the build artefact catches what the permissive local install let through.
+
+**Majors are never automerged.** The upgrade routine ([16-routines.md](16-routines.md)) takes
+every open major pull request each morning: it reads the dependency's changelog and migration
+guide, applies the code changes the new major requires, deploys the branch to the project's
+staging environment ([14-infra.md](14-infra.md#staging)) to prove the build and the deploy, and
+merges when CI and the staging deploy are green; otherwise it leaves the pull request open with a
+comment saying what blocks. The package of this stack follows the same path with its own label,
+`stack`.

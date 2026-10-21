@@ -17,6 +17,16 @@ Firestore `eur3`. Templates in `templates/infra/`.
 | `observer.tf` | A read-only service account for unattended production reads |
 | `outputs.tf` | What the workflows and the app read back |
 
+## Staging
+
+Every app has a second GCP project, `<app>-staging-polyforms`, provisioned by the same Terraform
+(a workspace, same files, smaller quotas), scale to zero so it costs nothing idle. It exists to
+prove a deploy before production: a pull request labelled `staging` (every major dependency
+bump, every stack upgrade, anything touching infrastructure) is deployed there by the Deploy
+workflow, with a seeded dataset and its own Sentry environment; the app points at it through its
+server-URL override. Nothing in staging is ever production data. Not built on any project yet:
+Bazar is the first.
+
 ## Rules
 
 - `scripts/bootstrap.sh` creates the project, the state bucket and the first apply, once, from
