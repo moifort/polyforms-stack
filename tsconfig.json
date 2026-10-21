@@ -7,7 +7,9 @@
     "noEmit": true,
     "skipLibCheck": true,
     "types": ["bun-types"],
-    "paths": { "~/*": ["./src/*"] }
+    "paths": {
+      "~/*": ["./src/*"]
+    }
   },
-  "include": ["bin", "src"]
+  "include": ["bin", "src", "scripts"]
 }

@@ -27,7 +27,8 @@
     "lint": "bunx biome check",
     "lint:fix": "bunx biome check --write",
     "validate": "bun src/validate-content.ts",
-    "preflight": "bun run typecheck && bun run lint && bun run test:unit && bun run test:int && bun run validate"
+    "preflight": "bun run typecheck && bun run lint && bun run test:unit && bun run test:int && bun run validate",
+    "release": "bun scripts/release.ts"
   },
   "dependencies": {
     "semver": "7.7.2",

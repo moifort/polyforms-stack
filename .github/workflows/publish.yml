@@ -8,8 +8,8 @@ on:
     tags: ['v*']
 
 permissions:
-  contents: read
-  id-token: write
+  contents: write   # the GitHub release
+  id-token: write   # npm trusted publishing
 
 jobs:
   publish:
@@ -29,4 +29,26 @@ jobs:
           version="${GITHUB_REF_NAME#v}"
           test "$(bun -e 'console.log(require("./package.json").version)')" = "$version"
           grep -q "^## ${version} " CHANGELOG.md
-      - run: npm publish --provenance --access public
+      # A tag pushed again (to carry its notes) must not fail on a version npm already has.
+      - name: Publish, unless this version is already on npm
+        run: |
+          set -euo pipefail
+          version="${GITHUB_REF_NAME#v}"
+          if npm view "@moifort/stack@${version}" version >/dev/null 2>&1; then
+            echo "::notice::@moifort/stack ${version} is already published"
+          else
+            npm publish --provenance --access public
+          fi
+      # The GitHub release carries the version's changelog section, as the tag does.
+      - name: GitHub release with the version's notes
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          version="${GITHUB_REF_NAME#v}"
+          awk -v v="$version" '$0 ~ "^## "v" " {on=1; next} on && /^## / {exit} on {print}' CHANGELOG.md > notes.md
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            gh release edit "$GITHUB_REF_NAME" --title "$version" --notes-file notes.md
+          else
+            gh release create "$GITHUB_REF_NAME" --title "$version" --notes-file notes.md
+          fi

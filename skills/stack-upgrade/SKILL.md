@@ -8,7 +8,8 @@ description: Use when a Renovate pull request bumps @moifort/stack in a project,
 1. Confirm the pull request bumps `@moifort/stack`. Otherwise this skill does not apply.
 2. In the pull request's branch: `bun install`, `bunx stack sync`, commit
    `chore(stack): sync to <version>`.
-3. `bunx stack migrations <old> <new> --json`: the migrations between the two versions, for
+3. Read the **Upgrade** part of every `CHANGELOG.md` section between the two versions
+   (`node_modules/@moifort/stack/CHANGELOG.md`), then `bunx stack migrations <old> <new> --json`: the migrations between the two versions, for
    this project's stacks, in order.
 4. For each migration, in order:
    - read the rule it points to and its body (what changes, how to find it, how to fix it,
