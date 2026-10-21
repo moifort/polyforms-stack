@@ -63,6 +63,16 @@ followed by a wait for their approval. Without exception, and whatever the state
 - Committing before approval is fine. Installing on the person's device before approval is not.
 - The next task does not start until the screenshot is approved.
 
+## Ideas and decisions
+
+- **Ideas** that come up and are not built now go into the project's `docs/ideas.md`, one line
+  each with the date, so nothing said in passing is lost. Claude adds to it without being asked.
+- **Architecture choices** get an ADR (architecture decision record) in `docs/adr/`, numbered
+  (`0007-flat-collections.md`): context, decision, alternatives rejected, consequences. Written
+  when the choice is made, proposed to the person before the code that depends on it.
+
+(Shape to refine later; the rule is that both exist in every project.)
+
 ## Skills and tooling
 
 Before starting, look at what is installed and invoke what matches the task. Never cite, impose
