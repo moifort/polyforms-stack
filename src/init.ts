@@ -3,6 +3,7 @@ import { basename, dirname } from 'node:path'
 import { applies, ROUTINE_STACKS, RULE_STACKS } from '~/catalogue'
 import { CONFIG_FILE, type Stack, StackConfig } from '~/config'
 import { placeholdersIn } from '~/render'
+import { templatePlaceholders } from '~/templates'
 
 /** Every placeholder the selected rules and routines use, so init can ask for exactly those. */
 export const requiredPlaceholders = async (
@@ -20,7 +21,9 @@ export const requiredPlaceholders = async (
         names.add(name)
     }
   }
+  for (const name of await templatePlaceholders(packageDir, stacks)) names.add(name)
   names.delete('STACK_VERSION')
+  names.delete('TODAY')
   return [...names].sort()
 }
 
@@ -37,6 +40,12 @@ export const defaultPlaceholders = (projectDir: string): Record<string, string> 
     REVIEW_LANGUAGE: 'French',
     AI_DAILY_ALERT: '3 euros',
     BILLING_TABLE: 'polyforms-billing.billing_export.gcp_billing_export_v1',
+    GITHUB_OWNER: 'moifort',
+    GITHUB_REPO: `moifort/${repoName}`,
+    BUNDLE_ID: `com.polyforms.${repoName}.app`,
+    // Unknown until the App Store Connect record exists: filled in project-context.md
+    // and here by the bootstrap's last step.
+    APP_STORE_ID: '0',
   }
 }
 

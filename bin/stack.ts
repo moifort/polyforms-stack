@@ -4,7 +4,7 @@ import { readConfig, STACKS, type Stack } from '~/config'
 import { defaultPlaceholders, requiredPlaceholders, writeConfig } from '~/init'
 import { migrationsBetween, readMigrations } from '~/migrations'
 import { packageDir, packageVersion } from '~/package'
-import { applyPlan, checkPlan, planSync } from '~/sync'
+import { applyPlan, applyTemplates, checkPlan, planSync } from '~/sync'
 
 const usage = `stack <command>
 
@@ -46,10 +46,17 @@ const main = async (argv: string[]): Promise<number> => {
       }
       const used = Object.fromEntries(required.map((n) => [n, placeholders[n] as string]))
       await writeConfig(projectDir, { stacks, placeholders: used, exclude: [] })
-      const plan = await planSync(pkg, await readConfig(projectDir), version)
+      const config = await readConfig(projectDir)
+      const today = new Date().toISOString().slice(0, 10)
+      const { written, kept } = await applyTemplates(pkg, projectDir, config, {
+        ...config.placeholders,
+        STACK_VERSION: version,
+        TODAY: today,
+      })
+      const plan = await planSync(pkg, config, version)
       await applyPlan(projectDir, plan)
       console.log(
-        `initialised with stacks ${stacks.join(', ') || '(none)'} and synced to ${version}`,
+        `initialised with stacks ${stacks.join(', ') || '(none)'}: ${written.length} files written, ${kept.length} kept, synced to ${version}`,
       )
       return 0
     }

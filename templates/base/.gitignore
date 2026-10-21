@@ -1,0 +1,58 @@
+node_modules
+.nitro
+.output
+.env
+.env.local
+dist
+.DS_Store
+
+# Terraform
+infra/.bin/
+infra/.terraform/
+infra/.terraform.lock.hcl
+infra/terraform.tfstate
+infra/terraform.tfstate.backup
+infra/crash.log
+infra/crash.*.log
+infra/terraform.tfvars
+infra/*.auto.tfvars
+infra/*.auto.tfvars.json
+infra/*.p8
+*.tfstate.backup
+.output/server-source.zip
+
+# Generated server assets
+server/system/changelog-content.ts
+
+# iOS / Xcode
+*.xcworkspace
+xcuserdata/
+build/
+*.xcarchive
+*.ipa
+ios/*/Shared/Secrets.swift
+ios/*UITests/Support/TestSecrets.swift
+ios/*/GoogleService-Info.plist
+ios/*/Generated/GraphQL/*
+!ios/*/Generated/GraphQL/Schema/
+ios/*/Generated/GraphQL/Schema/*
+!ios/*/Generated/GraphQL/Schema/CustomScalars/
+
+# fastlane: generated artefacts, never the listing
+infra/fastlane/report.xml
+infra/fastlane/README.md
+infra/fastlane/metadata/*/release_notes.txt
+infra/fastlane/screenshots/
+infra/fastlane/test_output/
+
+# Firebase emulators
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+.emulators/
+
+# Claude Code: the shared pieces are committed (skills, hooks, settings), the rest is local
+.claude/*
+!.claude/skills/
+!.claude/hooks/
+!.claude/settings.json

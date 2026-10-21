@@ -1,0 +1,16 @@
+project_id         = "{{APP_SLUG}}-polyforms"
+project_name       = "{{APP_NAME}}"
+org_id             = "123456789012"          # OR set folder_id instead
+billing_account_id = "AAAA-BBBB-CCCC-DDDD"
+region             = "europe-west3"
+firestore_location = "eur3"
+
+# Apple Sign-In (download the .p8 and the ids from https://developer.apple.com/account)
+apple_team_id          = "ABCD123456"
+apple_services_id      = "{{BUNDLE_ID}}.signin"
+apple_key_id           = "KEY1234567"
+apple_private_key_path = "./AuthKey_KEY1234567.p8"
+
+# Backend secrets
+sentry_dsn  = ""                               # optional
+# admin_token = "..."                          # optional, auto-generated if omitted

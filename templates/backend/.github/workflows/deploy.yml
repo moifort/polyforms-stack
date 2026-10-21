@@ -1,0 +1,151 @@
+name: Deploy
+
+# Every push to main redeploys, except one that touches only the landing page,
+# the docs or the captures: none of them reaches the backend, and the Pages
+# workflow publishes the site on its own. The backend is never applied from a
+# workstation: the Terraform state lives in GCS and this job is its only writer.
+# A pull request labelled `staging` deploys its branch to the staging project.
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - 'site/**'
+      - 'docs/**'
+      - 'screenshots/**'
+      - 'README.md'
+      - 'CLAUDE.md'
+  pull_request:
+    types: [labeled, synchronize]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write   # required for Workload Identity Federation
+
+# The Terraform state takes a lock, so two applies at once do not interleave.
+# Queue the runs instead of racing them, and never cancel one mid-apply.
+concurrency:
+  group: deploy-${{ github.event_name == 'pull_request' && 'staging' || 'production' }}
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: 🚀 Backend (${{ github.event_name == 'pull_request' && 'staging' || 'production' }})
+    if: github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'staging')
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      # One workspace per environment: the staging project is the same Terraform
+      # with its own state prefix and variables.
+      TF_WORKSPACE: ${{ github.event_name == 'pull_request' && 'staging' || 'default' }}
+      PROJECT_ID: ${{ github.event_name == 'pull_request' && vars.GCP_STAGING_PROJECT_ID || vars.GCP_PROJECT_ID }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0   # sentry-cli reads the commit history to attach it to the release
+
+      # A missing secret reaches Terraform as an empty string, not as null: an unset
+      # ADMIN_TOKEN would leave /admin/* unguarded. Fail before anything is applied.
+      - name: Check the deploy secrets are set
+        env:
+          GCP_WIF_PROVIDER: ${{ secrets.GCP_WIF_PROVIDER }}
+          GCP_DEPLOY_SA: ${{ secrets.GCP_DEPLOY_SA }}
+          GCP_BILLING_ACCOUNT: ${{ secrets.GCP_BILLING_ACCOUNT }}
+          ADMIN_TOKEN: ${{ secrets.ADMIN_TOKEN }}
+          GCP_ORG_ID: ${{ vars.GCP_ORG_ID }}
+        run: |
+          missing=0
+          for name in GCP_WIF_PROVIDER GCP_DEPLOY_SA GCP_BILLING_ACCOUNT ADMIN_TOKEN GCP_ORG_ID PROJECT_ID; do
+            if [ -z "${!name}" ]; then
+              echo "::error::$name is not set"
+              missing=1
+            fi
+          done
+          exit "$missing"
+
+      - uses: oven-sh/setup-bun@v2
+      - uses: hashicorp/setup-terraform@v4
+        with:
+          terraform_version: v1.16.6
+
+      - name: Authenticate to Google Cloud (workload identity)
+        uses: google-github-actions/auth@v3
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WIF_PROVIDER }}
+          service_account: ${{ secrets.GCP_DEPLOY_SA }}
+
+      - name: Build the Nitro bundle (firebase preset)
+        env:
+          # Baked into the bundle, so every error Sentry receives says which
+          # deploy produced it and which source maps decode it.
+          SENTRY_RELEASE: {{APP_SLUG}}-node@${{ github.sha }}
+        run: |
+          bun install --frozen-lockfile
+          bun run generate:assets
+          bunx nitro prepare
+          bun run generate:graphql
+          bun run build
+
+      # The update screen sends every build below the floor to the App Store: a floor
+      # above the build on sale would block users with nothing to install.
+      - name: Check the build floor is on the App Store
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+        run: bun scripts/deprecations.ts check-floor
+
+      - name: Upload the source maps to Sentry
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: polyforms
+          SENTRY_PROJECT: {{APP_SLUG}}-node
+          SENTRY_RELEASE: {{APP_SLUG}}-node@${{ github.sha }}
+        run: |
+          set -euo pipefail
+          if [ -n "$SENTRY_AUTH_TOKEN" ]; then
+            curl -sL https://sentry.io/get-cli/ | bash
+            sentry-cli releases new "$SENTRY_RELEASE"
+            sentry-cli sourcemaps inject .output/server
+            sentry-cli sourcemaps upload --release "$SENTRY_RELEASE" .output/server
+            sentry-cli releases set-commits "$SENTRY_RELEASE" --local --ignore-missing
+            sentry-cli releases finalize "$SENTRY_RELEASE"
+          else
+            echo "::warning::SENTRY_AUTH_TOKEN is unset, deploying without source maps"
+          fi
+          # The maps themselves never ship: Terraform zips this directory as-is.
+          find .output/server -name '*.map' -delete
+
+      - name: Materialize terraform.tfvars from GitHub secrets
+        run: |
+          set -euo pipefail
+          printf '%s' "${{ secrets.APPLE_PRIVATE_KEY_P8 }}" > infra/apple.p8
+          chmod 600 infra/apple.p8
+          cat > infra/terraform.tfvars <<EOF
+          project_id               = "${PROJECT_ID}"
+          billing_account_id       = "${{ secrets.GCP_BILLING_ACCOUNT }}"
+          org_id                   = "${{ vars.GCP_ORG_ID }}"
+          region                   = "europe-west3"
+          firestore_location       = "eur3"
+          apple_team_id            = "${{ secrets.APPLE_TEAM_ID }}"
+          apple_services_id        = "${{ secrets.APPLE_SERVICES_ID }}"
+          apple_key_id             = "${{ secrets.APPLE_KEY_ID }}"
+          apple_private_key_path   = "${{ secrets.APPLE_PRIVATE_KEY_P8 != '' && './apple.p8' || '' }}"
+          sentry_dsn               = "${{ secrets.SENTRY_DSN }}"
+          admin_token              = "${{ secrets.ADMIN_TOKEN }}"
+          observer_service_account = "${{ vars.OBSERVER_SERVICE_ACCOUNT }}"
+          EOF
+
+      - name: Terraform init + apply
+        working-directory: infra
+        run: |
+          terraform init -input=false
+          terraform apply -auto-approve -input=false
+
+      - name: Run Firestore migrations
+        working-directory: infra
+        run: |
+          URL=$(terraform output -raw function_url)
+          curl -fsS -X POST \
+            -H "Authorization: Bearer ${{ secrets.ADMIN_TOKEN }}" \
+            "${URL}/admin/migrate"

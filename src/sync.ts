@@ -1,8 +1,9 @@
-import { mkdir, readdir, rm } from 'node:fs/promises'
+import { chmod, mkdir, readdir, rm } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import { applies, HOOK_STACKS, ROUTINE_STACKS, RULE_STACKS, SKILL_STACKS } from '~/catalogue'
 import type { StackConfig } from '~/config'
 import { render } from '~/render'
+import { planTemplates } from '~/templates'
 
 export type Plan = {
   /** Files to write in the project, path relative to the project root, with their content. */
@@ -92,6 +93,31 @@ export const withHooks = (
     if (!already) post.push({ matcher: 'Bash', hooks: [{ type: 'command', command }] })
   }
   return { ...settings, hooks: { ...hooks, PostToolUse: post } }
+}
+
+/** Writes the templates into a project that does not have them yet: a file that
+ *  already exists is left alone, so init on an existing project adds what is
+ *  missing and overwrites nothing. */
+export const applyTemplates = async (
+  packageDir: string,
+  projectDir: string,
+  config: StackConfig,
+  values: Record<string, string>,
+): Promise<{ written: string[]; kept: string[] }> => {
+  const written: string[] = []
+  const kept: string[] = []
+  for (const file of await planTemplates(packageDir, config, values)) {
+    const target = join(projectDir, file.path)
+    if (await Bun.file(target).exists()) {
+      kept.push(file.path)
+      continue
+    }
+    await mkdir(dirname(target), { recursive: true })
+    await Bun.write(target, file.content)
+    if (file.executable) await chmod(target, 0o755)
+    written.push(file.path)
+  }
+  return { written, kept }
 }
 
 export const applyPlan = async (projectDir: string, plan: Plan): Promise<void> => {

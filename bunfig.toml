@@ -1,2 +1,6 @@
 [install]
 exact = true
+
+[test]
+# The templates carry their own tests, run inside a generated project, never here.
+root = "src"
