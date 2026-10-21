@@ -1,0 +1,16 @@
+{
+  "schemaNamespace": "{{APP_NAME}}GraphQL",
+  "input": {
+    "schemaSearchPaths": ["../shared/schema.graphql"],
+    "operationSearchPaths": ["{{APP_NAME}}/Features/**/GraphQL/*.graphql"]
+  },
+  "output": {
+    "schemaTypes": {
+      "path": "{{APP_NAME}}/Generated/GraphQL",
+      "moduleType": { "embeddedInTarget": { "name": "{{APP_NAME}}" } }
+    },
+    "operations": { "inSchemaModule": {} },
+    "testMocks": { "none": {} }
+  },
+  "options": { "markTypesNonisolated": true }
+}

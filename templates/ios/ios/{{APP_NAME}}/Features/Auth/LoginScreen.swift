@@ -1,0 +1,83 @@
+import AuthenticationServices
+import FirebaseAuth
+import FirebaseCore
+import SwiftUI
+
+struct LoginScreen: View {
+    @Environment(AuthSession.self) private var session
+    @State private var nonce = ""
+    @State private var error: String?
+    @State private var isSigningIn = false
+
+    var body: some View {
+        VStack(spacing: 32) {
+            Spacer()
+            VStack(spacing: 12) {
+                Image(systemName: "sparkles")
+                    .font(.system(size: 64))
+                    .foregroundStyle(.tint)
+                    .padding(.bottom, 4)
+                Text(verbatim: "{{APP_NAME}}")
+                    .font(.largeTitle.bold())
+                Text("Connectez-vous pour retrouver vos données.")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+            }
+            Spacer()
+            SignInWithAppleButton(.signIn) { request in
+                let raw = AppleNonce.random()
+                nonce = raw
+                request.requestedScopes = [.fullName, .email]
+                request.nonce = AppleNonce.sha256(raw)
+            } onCompletion: { result in
+                Task { await handle(result) }
+            }
+            .signInWithAppleButtonStyle(.black)
+            .frame(height: 50)
+            .padding(.horizontal, 32)
+            .disabled(isSigningIn)
+            if let error {
+                Text(error)
+                    .font(.footnote)
+                    .foregroundStyle(.red)
+                    .padding(.horizontal, 32)
+            }
+            Spacer().frame(height: 40)
+        }
+    }
+
+    private func handle(_ result: Result<ASAuthorization, Error>) async {
+        isSigningIn = true
+        defer { isSigningIn = false }
+        do {
+            let auth = try result.get()
+            guard
+                let credential = auth.credential as? ASAuthorizationAppleIDCredential,
+                let tokenData = credential.identityToken,
+                let token = String(data: tokenData, encoding: .utf8)
+            else {
+                error = String(localized: "Apple n'a pas renvoyé de jeton.")
+                return
+            }
+            let oauth = OAuthProvider.appleCredential(
+                withIDToken: token,
+                rawNonce: nonce,
+                fullName: credential.fullName
+            )
+            // Before signing in: the session flips to signed-in the moment
+            // Firebase answers, and onboarding reads the name on appearing.
+            session.rememberAppleName(credential.fullName)
+            _ = try await Auth.auth().signIn(with: oauth)
+        } catch {
+            self.error = (error as NSError).localizedDescription
+        }
+    }
+}
+
+#Preview {
+    // `AuthSession` reads `Auth.auth()` on init, which traps when Firebase was
+    // never configured: the canvas does not run `App.init`.
+    if FirebaseApp.app() == nil { FirebaseApp.configure() }
+    return LoginScreen().environment(AuthSession())
+}

@@ -80,7 +80,7 @@ export const planTemplates = async (
   for (const folder of templateFolders(config.stacks)) {
     const root = join(packageDir, 'templates', folder)
     for (const path of await walk(root)) {
-      const rel = relative(root, path)
+      const rel = render(relative(root, path), values)
       const file = Bun.file(path)
       const executable = ((await file.stat()).mode & 0o111) !== 0
       if (rel.endsWith('.merge.json')) {

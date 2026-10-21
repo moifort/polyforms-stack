@@ -1,0 +1,10 @@
+{
+  "scripts": {
+    "ios:project": "cd ios && xcodegen generate",
+    "ios:codegen": "bun scripts/apollo-codegen.ts",
+    "ios:build": "bun run ios:project && bun run ios:codegen && DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer xcodebuild -project ios/{{APP_NAME}}.xcodeproj -scheme {{APP_NAME}} -destination 'generic/platform=iOS Simulator' -derivedDataPath build/derived SWIFT_ENABLE_EXPLICIT_MODULES=NO build",
+    "ios:test": "DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer xcodebuild -project ios/{{APP_NAME}}.xcodeproj -scheme {{APP_NAME}} -destination \"platform=iOS Simulator,name=${IOS_SIMULATOR:-iPhone 17}\" -derivedDataPath build/derived SWIFT_ENABLE_EXPLICIT_MODULES=NO test",
+    "ios:strings": "DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer bun scripts/check-strings.ts build/derived",
+    "ios:components": "bun scripts/check-ios-components.ts"
+  }
+}

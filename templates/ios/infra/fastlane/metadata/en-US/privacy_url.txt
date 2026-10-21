@@ -1,0 +1,1 @@
+https://{{APP_SLUG}}.polyforms.co/privacy.html

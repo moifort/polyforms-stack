@@ -1,0 +1,118 @@
+import SwiftUI
+
+/// Lets the user write to us: a problem to report, or an idea for the app.
+/// The message goes straight to Sentry, where the errors already land.
+///
+/// The send is fire-and-forget: the SDK queues the message and retries on its
+/// own, so there is nothing to await and the confirmation below is optimistic.
+struct FeedbackSheet: View {
+    /// Sends the message; `sendFeedback` in the app, nothing in a preview.
+    let onSend: (FeedbackKind, String) -> Void
+
+    @Environment(\.dismiss) private var dismiss
+
+    @State private var kind: FeedbackKind = .bug
+    @State private var message = ""
+    @State private var sent = false
+
+    var body: some View {
+        NavigationStack {
+            ZStack {
+                if sent {
+                    confirmation
+                        .transition(.scale(scale: 0.8).combined(with: .opacity))
+                } else {
+                    composer
+                        .transition(.opacity)
+                }
+            }
+            .animation(.smooth(duration: 0.3), value: sent)
+            .sensoryFeedback(.success, trigger: sent)
+            .navigationTitle("Nous écrire")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    ToolbarIconButton(
+                        title: sent ? "Terminé" : "Annuler",
+                        systemImage: "xmark",
+                        role: .cancel
+                    ) { dismiss() }
+                }
+                if !sent {
+                    ToolbarItem(placement: .confirmationAction) {
+                        ToolbarIconButton(title: "Envoyer", systemImage: "paperplane.fill") { send() }
+                            .disabled(trimmedMessage.isEmpty)
+                            .accessibilityIdentifier("feedback-send")
+                    }
+                }
+            }
+            .task(id: sent) {
+                guard sent else { return }
+                try? await Task.sleep(for: .seconds(2))
+                guard !Task.isCancelled else { return }
+                dismiss()
+            }
+        }
+    }
+
+    private var composer: some View {
+        Form {
+            // Bare on the page rather than in a card: it sets the subject, it is
+            // not a field of the message.
+            Picker("Sujet", selection: $kind) {
+                Text("Problème").tag(FeedbackKind.bug)
+                Text("Suggestion").tag(FeedbackKind.idea)
+            }
+            .pickerStyle(.segmented)
+            .listRowBackground(Color.clear)
+            .listRowInsets(EdgeInsets())
+
+            Section {
+                TextField(kindHint, text: $message, axis: .vertical)
+                    .lineLimit(5...)
+                    .accessibilityIdentifier("feedback-message")
+            }
+        }
+    }
+
+    /// Centred confirmation that replaces the form once the message is queued,
+    /// then steps aside on its own after a couple of seconds.
+    private var confirmation: some View {
+        VStack(spacing: 16) {
+            Image(systemName: "checkmark.circle.fill")
+                .font(.system(size: 76))
+                .foregroundStyle(.green)
+                .symbolEffect(.bounce, options: .nonRepeating, value: sent)
+
+            Text("Message envoyé")
+                .font(.title3.weight(.semibold))
+
+            Text("Merci, votre message nous aide à améliorer l'application.")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+        }
+        .padding(.horizontal, 40)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    private var kindHint: LocalizedStringKey {
+        switch kind {
+        case .bug: "Décrivez ce que vous faisiez et ce qui s'est passé."
+        case .idea: "Dites-nous ce qui manque ou ce qui gagnerait à changer."
+        }
+    }
+
+    private var trimmedMessage: String {
+        message.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private func send() {
+        onSend(kind, trimmedMessage)
+        sent = true
+    }
+}
+
+#Preview {
+    FeedbackSheet { _, _ in }
+}

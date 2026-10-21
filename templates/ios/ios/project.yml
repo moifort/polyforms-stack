@@ -1,0 +1,94 @@
+# The Xcode project is generated from this file: `bun run ios:project` (XcodeGen).
+# Never add a file through Xcode's UI: folders are synchronised, so a new file on
+# disk is in the target. Edit this file for settings, packages and targets.
+name: "{{APP_NAME}}"
+options:
+  bundleIdPrefix: com.polyforms
+  deploymentTarget:
+    iOS: "26.0"
+  defaultConfig: Debug
+  developmentLanguage: en
+
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    SWIFT_STRICT_CONCURRENCY: complete
+    DEVELOPMENT_TEAM: "{{APPLE_TEAM_ID}}"
+    MARKETING_VERSION: "1.0"
+    CURRENT_PROJECT_VERSION: 1
+    DEVELOPMENT_LANGUAGE: en
+    LOCALIZATION_PREFERS_STRING_CATALOGS: YES
+    SWIFT_EMIT_LOC_STRINGS: YES
+
+packages:
+  Apollo:
+    url: https://github.com/apollographql/apollo-ios.git
+    from: "2.2.0"
+  Firebase:
+    url: https://github.com/firebase/firebase-ios-sdk.git
+    from: "13.0.0"
+  Sentry:
+    url: https://github.com/getsentry/sentry-cocoa.git
+    from: "9.0.0"
+
+targets:
+  "{{APP_NAME}}":
+    type: application
+    platform: iOS
+    sources:
+      - path: "{{APP_NAME}}"
+        type: syncedFolder
+    dependencies:
+      - package: Apollo
+        product: Apollo
+      - package: Firebase
+        product: FirebaseCore
+      - package: Firebase
+        product: FirebaseAuth
+      - package: Sentry
+        product: Sentry
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: "{{BUNDLE_ID}}"
+        INFOPLIST_FILE: "{{APP_NAME}}/Info.plist"
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_CFBundleDisplayName: "{{APP_NAME}}"
+        INFOPLIST_KEY_UISupportedInterfaceOrientations: UIInterfaceOrientationPortrait
+        INFOPLIST_KEY_ITSAppUsesNonExemptEncryption: NO
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        CODE_SIGN_ENTITLEMENTS: "{{APP_NAME}}/{{APP_NAME}}.entitlements"
+        CODE_SIGN_STYLE: Automatic
+      configs:
+        Release:
+          # The archive signs manually with the distribution certificate and the
+          # App Store profile the upload workflow installs.
+          CODE_SIGN_STYLE: Manual
+          CODE_SIGN_IDENTITY: Apple Distribution
+          PROVISIONING_PROFILE_SPECIFIER: "{{APP_NAME}} App Store"
+
+  "{{APP_NAME}}Tests":
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: "{{APP_NAME}}Tests"
+        type: syncedFolder
+    dependencies:
+      - target: "{{APP_NAME}}"
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: "{{BUNDLE_ID}}.tests"
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/{{APP_NAME}}.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/{{APP_NAME}}"
+        BUNDLE_LOADER: "$(TEST_HOST)"
+
+schemes:
+  "{{APP_NAME}}":
+    build:
+      targets:
+        "{{APP_NAME}}": all
+        "{{APP_NAME}}Tests": [test]
+    test:
+      targets:
+        - "{{APP_NAME}}Tests"
+    archive:
+      config: Release

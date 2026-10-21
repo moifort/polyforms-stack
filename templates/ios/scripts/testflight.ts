@@ -1,0 +1,213 @@
+/**
+ * The App Store Connect calls the iOS upload workflow makes, answered from a Linux
+ * runner with the team API key rather than through fastlane.
+ *
+ *   bun scripts/testflight.ts check <marketing> <build>
+ *     Prints `exists=true|false` and `previous=<build number of the last upload>` as
+ *     GitHub step outputs. A build number is the commit count, so a build that already
+ *     exists means this commit is already on App Store Connect and there is nothing to do.
+ *
+ *   bun scripts/testflight.ts notes <marketing> <build> <file>
+ *     Waits for the uploaded build to show up, sets the file as its TestFlight
+ *     "What to Test", then waits for processing to finish so the run only turns green once
+ *     testers can actually install it.
+ *
+ *   bun scripts/testflight.ts share <marketing> <build>
+ *     Adds the processed build to the external "Public" group and submits it to Beta App
+ *     Review. An external group only ever sees the builds added to it, one by one; once a
+ *     version has passed review, Apple usually approves its later builds within minutes.
+ *     Safe to rerun: a build already submitted is left alone.
+ *
+ *   bun scripts/testflight.ts submitted <marketing>
+ *     Prints `submitted=true|false` and `state=<App Store version state>` as GitHub step
+ *     outputs. A version is submitted once it left the states a developer can still edit:
+ *     waiting for review, in review, pending release, on sale. The release workflow then
+ *     records the tag without uploading or submitting anything, since the version went to
+ *     App Review by hand (the first subscriptions can only be attached from the web).
+ *
+ * Reads ASC_KEY_ID, ASC_ISSUER_ID and ASC_KEY_P8 (the .p8 contents) from the environment.
+ */
+
+import { createPrivateKey, sign } from 'node:crypto'
+import { readFileSync } from 'node:fs'
+
+const BUNDLE_ID = '{{BUNDLE_ID}}'
+// Beta testers get "What to Test" in their own language when it exists, and the app ships
+// in these two. Commit subjects are English, so both carry the same text.
+const LOCALES = ['fr-FR', 'en-US']
+const WHATS_NEW_MAX = 4000
+const EXTERNAL_GROUP = 'Public'
+
+const env = (name: string) => {
+  const value = process.env[name]
+  if (!value) throw new Error(`${name} is unset`)
+  return value
+}
+
+const apiToken = () => {
+  const kid = env('ASC_KEY_ID')
+  const encode = (value: object) => Buffer.from(JSON.stringify(value)).toString('base64url')
+  const now = Math.floor(Date.now() / 1000)
+  const unsigned = `${encode({ alg: 'ES256', kid, typ: 'JWT' })}.${encode({
+    iss: env('ASC_ISSUER_ID'),
+    iat: now,
+    exp: now + 15 * 60,
+    aud: 'appstoreconnect-v1',
+  })}`
+  const signature = sign('sha256', Buffer.from(unsigned), {
+    key: createPrivateKey(env('ASC_KEY_P8')),
+    dsaEncoding: 'ieee-p1363',
+  })
+  return `${unsigned}.${signature.toString('base64url')}`
+}
+
+type Resource = { id: string; attributes: Record<string, unknown> }
+
+// A fresh token per call: `notes` polls for up to an hour, well past a token's lifetime.
+const api = async (method: string, path: string, body?: object) => {
+  const response = await fetch(`https://api.appstoreconnect.apple.com${path}`, {
+    method,
+    headers: { authorization: `Bearer ${apiToken()}`, 'content-type': 'application/json' },
+    body: body && JSON.stringify(body),
+  })
+  if (!response.ok) {
+    throw new Error(`${method} ${path} answered ${response.status}: ${await response.text()}`)
+  }
+  // Linking a relationship (a build to a group) answers 204 with no body at all.
+  if (response.status === 204) return { data: [] as Resource[] }
+  return (await response.json()) as { data: Resource[] | Resource }
+}
+
+const list = async (path: string) => (await api('GET', path)).data as Resource[]
+
+const appId = async () => {
+  const [app] = await list(`/v1/apps?filter[bundleId]=${BUNDLE_ID}`)
+  if (!app) throw new Error(`No App Store Connect app for ${BUNDLE_ID}`)
+  return app.id
+}
+
+const findBuild = async (app: string, marketing: string, build: string) => {
+  const [found] = await list(
+    `/v1/builds?filter[app]=${app}&filter[version]=${build}` +
+      `&filter[preReleaseVersion.version]=${marketing}&fields[builds]=version,processingState`,
+  )
+  return found
+}
+
+const output = (lines: string[]) => process.stdout.write(`${lines.join('\n')}\n`)
+
+const check = async (marketing: string, build: string) => {
+  const app = await appId()
+  const existing = await findBuild(app, marketing, build)
+  const [latest] = await list(
+    `/v1/builds?filter[app]=${app}&sort=-uploadedDate&limit=1&fields[builds]=version`,
+  )
+  output([`exists=${existing !== undefined}`, `previous=${latest?.attributes.version ?? ''}`])
+}
+
+// The states App Store Connect still lets a developer edit and submit; anything else means
+// the version is with Apple or on the store, and deliver would be refused on it.
+const EDITABLE_STATES = [
+  'PREPARE_FOR_SUBMISSION',
+  'READY_FOR_REVIEW',
+  'DEVELOPER_REJECTED',
+  'REJECTED',
+  'METADATA_REJECTED',
+  'INVALID_BINARY',
+]
+
+const submitted = async (marketing: string) => {
+  const app = await appId()
+  const [version] = await list(
+    `/v1/apps/${app}/appStoreVersions?filter[platform]=IOS&filter[versionString]=${marketing}` +
+      '&fields[appStoreVersions]=appVersionState',
+  )
+  const state = String(version?.attributes.appVersionState ?? 'NONE')
+  const done = version !== undefined && !EDITABLE_STATES.includes(state)
+  output([`submitted=${done}`, `state=${state}`])
+}
+
+const poll = async <T>(what: string, attempt: () => Promise<T | undefined>) => {
+  // App Store Connect usually lists a build within five minutes of the upload and finishes
+  // processing it within twenty; an hour means something is wrong on Apple's side.
+  for (let tries = 0; tries < 60; tries++) {
+    const result = await attempt()
+    if (result !== undefined) return result
+    process.stdout.write(`Waiting for ${what}…\n`)
+    await Bun.sleep(60_000)
+  }
+  throw new Error(`Gave up waiting for ${what}`)
+}
+
+const notes = async (marketing: string, build: string, file: string) => {
+  const whatsNew = readFileSync(file, 'utf8').trim().slice(0, WHATS_NEW_MAX)
+  const app = await appId()
+  const { id } = await poll(`build ${marketing} (${build}) to be listed`, () =>
+    findBuild(app, marketing, build),
+  )
+
+  const existing = await list(`/v1/builds/${id}/betaBuildLocalizations`)
+  for (const locale of LOCALES) {
+    const localization = existing.find((item) => item.attributes.locale === locale)
+    if (localization) {
+      await api('PATCH', `/v1/betaBuildLocalizations/${localization.id}`, {
+        data: { type: 'betaBuildLocalizations', id: localization.id, attributes: { whatsNew } },
+      })
+    } else {
+      await api('POST', '/v1/betaBuildLocalizations', {
+        data: {
+          type: 'betaBuildLocalizations',
+          attributes: { locale, whatsNew },
+          relationships: { build: { data: { type: 'builds', id } } },
+        },
+      })
+    }
+  }
+  process.stdout.write(`What to Test set on ${marketing} (${build}):\n${whatsNew}\n`)
+
+  const state = await poll(`build ${marketing} (${build}) to finish processing`, async () => {
+    const found = await findBuild(app, marketing, build)
+    const processing = found?.attributes.processingState
+    return processing === 'PROCESSING' ? undefined : processing
+  })
+  if (state !== 'VALID') throw new Error(`Build ${marketing} (${build}) ended ${state}`)
+  process.stdout.write(`Build ${marketing} (${build}) is available in TestFlight\n`)
+}
+
+const share = async (marketing: string, build: string) => {
+  const app = await appId()
+  const found = await findBuild(app, marketing, build)
+  if (!found) throw new Error(`No build ${marketing} (${build}) on App Store Connect`)
+  const groups = await list(`/v1/apps/${app}/betaGroups?fields[betaGroups]=name`)
+  const group = groups.find((item) => item.attributes.name === EXTERNAL_GROUP)
+  if (!group) throw new Error(`No TestFlight group named ${EXTERNAL_GROUP}`)
+
+  await api('POST', `/v1/betaGroups/${group.id}/relationships/builds`, {
+    data: [{ type: 'builds', id: found.id }],
+  })
+  const detail = (await api('GET', `/v1/builds/${found.id}/buildBetaDetail`)).data as Resource
+  const state = detail.attributes.externalBuildState
+  if (state === 'READY_FOR_BETA_SUBMISSION') {
+    await api('POST', '/v1/betaAppReviewSubmissions', {
+      data: {
+        type: 'betaAppReviewSubmissions',
+        relationships: { build: { data: { type: 'builds', id: found.id } } },
+      },
+    })
+    process.stdout.write(`Build ${marketing} (${build}) submitted to Beta App Review\n`)
+  } else {
+    process.stdout.write(`Build ${marketing} (${build}) is already ${state}\n`)
+  }
+}
+
+const [command, marketing, build, file] = process.argv.slice(2)
+if (!marketing || (command !== 'submitted' && !build)) {
+  throw new Error(
+    'Usage: testflight.ts check|notes|share <marketing> <build> | submitted <marketing>',
+  )
+}
+if (command === 'submitted') await submitted(marketing)
+else if (command === 'check') await check(marketing, build)
+else if (command === 'notes' && file) await notes(marketing, build, file)
+else if (command === 'share') await share(marketing, build)
+else throw new Error(`Unknown command: ${command}`)

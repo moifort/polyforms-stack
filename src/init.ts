@@ -46,6 +46,12 @@ export const defaultPlaceholders = (projectDir: string): Record<string, string> 
     // Unknown until the App Store Connect record exists: filled in project-context.md
     // and here by the bootstrap's last step.
     APP_STORE_ID: '0',
+    // The Apple developer team: from the environment (the keychain at bootstrap).
+    APPLE_TEAM_ID: process.env.APPLE_TEAM_ID ?? 'TEAMID0000',
+    // Until the first deploy prints the function URL: the local server.
+    SERVER_URL: 'http://127.0.0.1:3000',
+    APP_TAGLINE: "Ce que l'application fait pour vous, en une phrase.",
+    APP_TAGLINE_EN: 'What the app does for you, in one sentence.',
   }
 }
 

@@ -1,0 +1,16 @@
+# Everything a signed-in launch needs, in one request: the onboarding or the app,
+# and the first name the profile settings show.
+query Launch {
+  me {
+    firstName
+    onboardingCompleted
+  }
+}
+
+mutation CompleteOnboarding($input: CompleteOnboardingInput!) {
+  completeOnboarding(input: $input) {
+    userId
+    firstName
+    onboardingCompleted
+  }
+}

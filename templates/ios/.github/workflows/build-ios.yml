@@ -1,0 +1,168 @@
+name: Build
+
+# Runs only for what the app is built from: its sources, the committed schema the
+# Apollo code is regenerated from (so a backend change that breaks an iOS operation
+# still lands here), the two checks the job ends with, and this file. A server-only
+# push no longer pays twenty minutes of macOS runner, nor cancels a running build.
+# No branch protection requires this check, so a run that never starts blocks nothing.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'ios/**'
+      - 'shared/schema.graphql'
+      - 'scripts/check-strings.ts'
+      - 'scripts/check-ios-components.ts'
+      - '.github/workflows/build-ios.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'ios/**'
+      - 'shared/schema.graphql'
+      - 'scripts/check-strings.ts'
+      - 'scripts/check-ios-components.ts'
+      - '.github/workflows/build-ios.yml'
+  workflow_dispatch:
+
+# A newer push to the same branch, or to the same pull request, makes this run
+# pointless: it is cancelled rather than left to use a runner for nothing. Keyed on
+# the workflow file and the ref, since the three test workflows share one name.
+concurrency:
+  group: ${{ github.workflow_ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  # Guards the one thing the other three workflows cannot see: whether the app
+  # still compiles. The generated Apollo code is regenerated here from the
+  # committed schema, so a backend change that the iOS operations no longer match
+  # fails here rather than at release time. Builds without signing or uploading.
+  # macos-26 is a standard runner, so this costs nothing on a public repository.
+  ios:
+    name: 📱 iOS
+    runs-on: macos-26
+    # The simulator's first boot on a fresh runner takes ten minutes and more,
+    # on top of a cold build: 30 cut a run short on 2026-10-16.
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Select the latest final Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      # Booted first, so its ten-minute first start runs alongside the Apollo
+      # generation and the build rather than after them, where it sat as eleven
+      # silent minutes before the tests on 2026-10-16.
+      #
+      # The iPhone 17 precisely: the scheme's test pre-action boots "iPhone 17" to
+      # add the UI tests' photo. On any other device that pre-action cold-booted a
+      # second simulator inside the test step, six to fifteen silent minutes before
+      # the first test on 2026-10-18–20. simctl resolves the name to the device
+      # already booted, so here it finds this one ready and does nothing.
+      - name: Boot the simulator the tests run on
+        run: |
+          set -euo pipefail
+          devices=$(xcrun simctl list devices available)
+          line=$(grep -m1 -E '^ +iPhone 17 \(' <<< "$devices" \
+            || grep -m1 -E '^ +iPhone' <<< "$devices")
+          udid=$(grep -oE '[0-9A-F]{8}(-[0-9A-F]{4}){3}-[0-9A-F]{12}' <<< "$line")
+          echo "Testing on $line"
+          echo "SIMULATOR_UDID=$udid" >> "$GITHUB_ENV"
+          xcrun simctl boot "$udid"
+
+      - name: Generate the Xcode project
+        run: |
+          brew install xcodegen
+          (cd ios && xcodegen generate)
+
+      - name: Materialize gitignored build files
+        run: |
+          set -euo pipefail
+          printf '%s' "${{ secrets.IOS_GOOGLE_SERVICE_INFO_PLIST }}" \
+            | openssl base64 -d -A > ios/{{APP_NAME}}/GoogleService-Info.plist
+          cp ios/{{APP_NAME}}/Shared/Secrets.swift.example ios/{{APP_NAME}}/Shared/Secrets.swift
+
+      # Fetching the packages took four of the Apollo step's minutes on 2026-10-20.
+      # Package.resolved is not committed, so the cache cannot be keyed on it before
+      # resolving: the latest cache is restored, resolution then fetches only what
+      # moved, and a new cache is saved only when the resolved versions changed.
+      - name: Restore the Swift packages
+        id: spm-restore
+        uses: actions/cache/restore@v6
+        with:
+          path: ${{ runner.temp }}/SourcePackages
+          key: spm-${{ runner.os }}-${{ github.sha }}
+          restore-keys: spm-${{ runner.os }}-
+
+      - name: Generate Apollo GraphQL code (gitignored, regenerated per build)
+        run: |
+          set -euo pipefail
+          # Resolve SPM so the apollo-ios checkout (and its bundled CLI) exists.
+          xcodebuild -resolvePackageDependencies \
+            -project ios/{{APP_NAME}}.xcodeproj -scheme {{APP_NAME}} \
+            -derivedDataPath "$RUNNER_TEMP/DerivedData" \
+            -clonedSourcePackagesDirPath "$RUNNER_TEMP/SourcePackages"
+          resolved=ios/{{APP_NAME}}.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved
+          if [ -f "$resolved" ]; then
+            echo "SPM_CACHE_KEY=spm-${RUNNER_OS}-$(shasum -a 256 "$resolved" | cut -c1-16)" \
+              >> "$GITHUB_ENV"
+          fi
+          # Apollo 2.x ships the CLI as a tarball inside the checkout — extract it.
+          CLI_DIR="$RUNNER_TEMP/SourcePackages/checkouts/apollo-ios/CLI"
+          tar -xzf "$CLI_DIR/apollo-ios-cli.tar.gz" -C "$CLI_DIR"
+          chmod +x "$CLI_DIR/apollo-ios-cli"
+          (cd ios && "$CLI_DIR/apollo-ios-cli" generate)
+
+      - name: Save the Swift packages
+        if: env.SPM_CACHE_KEY != '' && steps.spm-restore.outputs.cache-matched-key != env.SPM_CACHE_KEY
+        uses: actions/cache/save@v6
+        with:
+          path: ${{ runner.temp }}/SourcePackages
+          key: ${{ env.SPM_CACHE_KEY }}
+
+      - name: Build the app and its tests
+        # Compiled once, for the simulator the tests then run on: no signing
+        # identity needed (release-ios.yml owns those).
+        run: |
+          set -euo pipefail
+          xcodebuild -project ios/{{APP_NAME}}.xcodeproj -scheme {{APP_NAME}} \
+            -destination "id=$SIMULATOR_UDID" \
+            -derivedDataPath "$RUNNER_TEMP/DerivedData" \
+            -clonedSourcePackagesDirPath "$RUNNER_TEMP/SourcePackages" \
+            CODE_SIGNING_ALLOWED=NO \
+            build-for-testing
+
+      - name: Unit tests
+        # The ViewModels driven over inline clients ({{APP_NAME}}Tests): no network, no
+        # Firebase, only a simulator to host the bundle. Runs what the step above
+        # built, without compiling anything again.
+        run: |
+          set -euo pipefail
+          # Says how long the boot still had to go, so a slow one shows here.
+          start=$SECONDS
+          xcrun simctl bootstatus "$SIMULATOR_UDID" -b
+          echo "Simulator ready after a further $((SECONDS - start)) s"
+          xcodebuild -project ios/{{APP_NAME}}.xcodeproj -scheme {{APP_NAME}} \
+            -destination "id=$SIMULATOR_UDID" \
+            -derivedDataPath "$RUNNER_TEMP/DerivedData" \
+            -clonedSourcePackagesDirPath "$RUNNER_TEMP/SourcePackages" \
+            -only-testing:{{APP_NAME}}Tests \
+            CODE_SIGNING_ALLOWED=NO \
+            test-without-building
+
+      - uses: oven-sh/setup-bun@v2
+
+      - name: Every string has its French and its English
+        # Reads the strings the build just extracted: one added to the code and
+        # left out of the catalogue fails here, as does one with no English.
+        run: bun scripts/check-strings.ts "$RUNNER_TEMP/DerivedData"
+
+      - name: Components stay pure and previewed
+        # Stack rule 10-ios.md: nothing under components/ or Shared/Components
+        # calls the server, reads a singleton or holds a ViewModel,
+        # and every view there has a #Preview.
+        run: bun scripts/check-ios-components.ts
