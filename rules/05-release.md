@@ -14,8 +14,9 @@ TestFlight, submission.
 3. **Approval.** The notes in `{{REVIEW_LANGUAGE}}` are shown in the conversation and approved
    explicitly. Corrections are carried into every language. No push on unapproved notes.
 4. **Push of `{{MAIN_BRANCH}}`**: it deploys the backend, which serves the notes to the app.
-5. **Captures and store panels** regenerated locally and committed, see
-   [07-appstore.md](07-appstore.md).
+5. **Captures and store panels**, only when the person asks for them: regenerated on the
+   machine, never in CI (far too slow there), committed to the repository, and uploaded by the
+   release workflow from what the repository holds. See [07-appstore.md](07-appstore.md).
 6. **Tag**, posted and pushed as soon as the notes are approved. Do not hold it for outside
    conditions (a CI outage, a red run): a missing run is relaunched by hand, an unposted tag
    blocks the chain. Never tag before the approval of step 3.

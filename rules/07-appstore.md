@@ -27,9 +27,12 @@ submits it to Beta App Review. Adding a tester who already belongs to another ap
 
 ## Captures and panels
 
-Captures and marketing panels are produced **locally** and committed, every served language at
-once; CI uploads what the repository holds. A stale panel in the repository is a stale panel in the
-store. They are regenerated at release when a screen changed, never at push.
+Captures and marketing panels are produced **on the machine**, never in CI (a run that boots
+emulators, backend and simulator for every language adds half an hour to a release for images that
+rarely change), every served language at once, and committed; the release workflow uploads what
+the repository holds. They are regenerated **only when the person asks for it**, never at push and
+not automatically at release. A stale panel in the repository is a stale panel in the store: when
+a screen changed, propose the regeneration.
 
 - Captures come from in-app showcase fixtures (`-showcase` launch argument, Debug builds only),
   on a dedicated simulator, never from a seeded server.
