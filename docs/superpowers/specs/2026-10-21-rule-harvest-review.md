@@ -44,16 +44,17 @@ autre source ajoute quelque chose), **Trancher** (deux sources se contredisent, 
   et `shiori-daily-health` existent). `dev-playbook` disait « jamais une majeure seule ». La
   conception suppose une routine de revue. Deux lectures : tout en automerge et la CI est le filet,
   ou bien créer la routine et retirer l'automerge des majeures. **Trancher.**
-- **D-07 Worktrees.** Bazar interdit `git worktree` ; Shiori les tolère pour construire HEAD quand
-  l'arbre est sale, et l'app en crée sous `.claude/worktrees/`. Proposition : développer dans le
-  checkout principal ; worktree accepté pour un build ou une capture, en copiant les fichiers ignorés
-  (`Secrets.swift`, `GoogleService-Info.plist`, `Package.resolved`, code Apollo généré).
-  **Trancher.**
-- **D-08 Sessions parallèles.** Shiori est développé par plusieurs sessions à la fois sur un même
-  checkout. Quatre mémoires n'existent que pour ça et aucune source écrite ne les porte : commit par
-  pathspec explicite, jamais `git add -A` ; jamais d'amend sans relire HEAD dans la même commande ;
-  re-vérifier son propre commit après ceux des autres ; ne jamais découper les hunks d'un fichier
-  généré. Section « Plusieurs sessions sur un checkout » dans `02-commits`. **Garder.**
+- **D-07 Worktrees.** Décidé le 21 octobre : un worktree par session quand plusieurs sessions
+  travaillent sur le même projet, pour qu'elles ne se marchent pas sur les pieds ; une session seule
+  reste dans le checkout principal. Un worktree neuf n'a pas les fichiers ignorés (`Secrets.swift`,
+  `GoogleService-Info.plist`, `Package.resolved`, code Apollo généré) : `sync` ou un script les
+  copie. **Garder.**
+- **D-08 Sessions parallèles.** Avec D-07, chaque session commit sur sa branche de worktree et
+  l'intégration sur `main` se fait par merge, ce qui retire la cause des quatre mémoires de Shiori
+  (commit par pathspec, amend qui avale les fichiers d'une autre session, re-vérification de son
+  commit, hunks d'un fichier généré). Elles restent écrites comme règles de secours pour le cas où
+  deux sessions partagent malgré tout un checkout : pathspec explicite, jamais `git add -A`,
+  jamais d'amend sans relire HEAD dans la même commande. **Garder.**
 
 ## R. Les règles, par fichier cible
 
