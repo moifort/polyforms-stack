@@ -27,11 +27,38 @@ workflow, with a seeded dataset and its own Sentry environment; the app points a
 server-URL override. Nothing in staging is ever production data. Not built on any project yet:
 Bazar is the first.
 
+## Bootstrap: one line creates a project
+
+`bunx {{PACKAGE_NAME}} bootstrap <app>` runs once from the person's machine and leaves a project
+that deploys itself. Two Terraform roots, because two kinds of credentials:
+
+| Root | Runs | Credentials | Creates |
+|---|---|---|---|
+| `infra/org/` | From the machine, at bootstrap and when the organisation-level setup changes | The person's organisation tokens, read from the macOS keychain for the duration of the run | The GitHub repository (settings, Pages, labels, branch rules), its secrets and variables, the Sentry projects (`<app>-node`, `<app>-ios`) with their DSNs written straight into the GitHub secrets, the Renovate installation, the GCP project and the state bucket |
+| `infra/` | By the Deploy workflow, through Workload Identity Federation | None on the machine | Everything in the table above |
+
+- **Keychain, not files.** The organisation tokens (GitHub, Sentry, App Store Connect) live in
+  the macOS keychain under fixed item names (`polyforms.github`, `polyforms.sentry`,
+  `polyforms.asc`), read with `security find-generic-password -w` into the environment of the
+  bootstrap process only, never written to a file, never printed, never committed. Each token is
+  fine-grained and scoped to the organisation, with an expiry, and its creation date is in the
+  person's `project-context.md`.
+- **The CI never holds a personal token.** What a workflow needs at run time is a repository
+  secret Terraform wrote (a DSN, a store API key) or a token it mints itself: Renovate runs
+  with a GitHub App installed on the organisation (the workflow mints a short-lived token from
+  the app's private key, stored once as an organisation secret), not with a personal token
+  that expires.
+- **Replayable.** Every step of the bootstrap checks whether it is already done and skips it,
+  so a run that failed halfway is simply run again. It never deploys the backend itself: it
+  ends by pushing the first commit and letting the Deploy workflow do the first deploy.
+- **What it cannot do, it lists.** The bootstrap ends with a numbered list of the steps that
+  need the person: the App Store Connect app record and the Sign in with Apple key (no API),
+  the Apple developer agreement, the DNS of the project's domain, the GA4 link when the API
+  refuses it. Each item says where to click and what value to paste back.
+- `scripts/teardown.sh` destroys both roots, after a typed confirmation of the app's name.
+
 ## Rules
 
-- `scripts/bootstrap.sh` creates the project, the state bucket and the first apply, once, from
-  the person's machine; `scripts/teardown.sh` destroys it. Everything after that is the Deploy
-  workflow ([11-ops.md](11-ops.md)).
 - The Terraform state is remote and never committed. `terraform.tfvars` is gitignored, with its
   `.example`.
 - Secrets reach the function through Secret Manager only; the workflow never writes a key into

@@ -117,6 +117,7 @@ Process rules (`00` to `08`, `12`, `15`, `16`) always apply; `stacks` selects th
 
 | Command | Behaviour |
 |---|---|
+| `bootstrap <app>` | Creates a new project end to end: `init`, then the organisation-level Terraform root with the keychain tokens (GitHub repository, Sentry projects, Renovate, GCP project, state bucket), first commit, first push, and the numbered list of what needs the person. Replayable. |
 | `init` | Asks stacks and placeholders, writes `stack.config.json`, runs `sync`, creates `CLAUDE.md` and `project-context.md` from the templates if absent, copies the templates the stacks need. |
 | `sync` | Renders placeholders, copies skills and hooks, registers the hooks, renders the routines into the machine's scheduled-tasks folder, writes the installed version where `check` can read it. Idempotent; fails without writing on a missing placeholder. |
 | `check` | Non-zero if the project's copy differs from `sync`'s output or a raw placeholder remains. Run in the project's CI. |
