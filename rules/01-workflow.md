@@ -41,6 +41,15 @@ The three test families run **separately** (`{{TEST_UNIT_COMMAND}}`, `{{TEST_INT
 `{{TEST_FEAT_COMMAND}}`): a module mock declared in one test file serves every file of the same
 run, so a single combined run passes while CI, which runs them apart, goes red.
 
+## Mockups before a complex screen
+
+A new feature with screens and real complexity (a new flow, several states, a layout nobody has
+seen) starts with mockups, before any real code: quick throwaway renderings of the screens built
+from fixtures (a preview or a harness screenshot, or a drawn mock when that is faster), sent for a
+fast approval of the layout and the flow. Only once the mockups are approved does the real
+implementation start. A small change to an existing screen skips this and goes straight to the
+screenshot below.
+
 ## Screenshot after every UI change
 
 Every request that changes a screen ends with a screenshot of the result, sent to the person,
