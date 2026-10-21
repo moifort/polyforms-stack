@@ -78,6 +78,7 @@ rules/
   14-infra.md           Terraform for Firebase and Cloud Functions, observer account, bootstrap
   15-tooling.md         Xcode and simulators, built-in browser, remote control
   16-routines.md        scheduled Claude tasks and what each may do
+  17-landing.md         the page that sells the product: structure, copy, screens, languages
 skills/                 domain, graphql, ios-feature, appstore, stack-upgrade, stack-install
 routines/               scheduled Claude task prompts: sentry-autofix, daily-health, stack-upgrade
 hooks/                  shutdown-simulators-after-push, and later ones

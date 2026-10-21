@@ -1,7 +1,7 @@
 # Copy
 
 Applies to everything the person using the product sees: on-screen text, release notes, the
-store listing, the site.
+store listing, the landing page ([17-landing.md](17-landing.md)).
 
 ## Tone
 
