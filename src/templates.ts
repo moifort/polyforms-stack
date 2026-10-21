@@ -80,7 +80,9 @@ export const planTemplates = async (
   for (const folder of templateFolders(config.stacks)) {
     const root = join(packageDir, 'templates', folder)
     for (const path of await walk(root)) {
-      const rel = render(relative(root, path), values)
+      // npm leaves every `.gitignore` out of a published package: the template
+      // ships it as `gitignore` and the project gets it under its real name.
+      const rel = render(relative(root, path), values).replace(/(^|\/)gitignore$/, '$1.gitignore')
       const file = Bun.file(path)
       const executable = ((await file.stat()).mode & 0o111) !== 0
       if (rel.endsWith('.merge.json')) {

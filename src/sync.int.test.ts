@@ -80,6 +80,20 @@ describe('sync', () => {
   })
 })
 
+describe('templates', () => {
+  test('the base template gives the project its .gitignore', async () => {
+    const { planTemplates } = await import('~/templates')
+    const files = await planTemplates(
+      packageDir(),
+      { stacks: ['backend'], placeholders: await values(['backend']), exclude: [] },
+      { ...(await values(['backend'])), STACK_VERSION: '1.0.0', TODAY: '2026-10-21' },
+    )
+    const paths = files.map((f) => f.path)
+    expect(paths).toContain('.gitignore')
+    expect(paths).not.toContain('gitignore')
+  })
+})
+
 describe('withRulesBlock', () => {
   test('inserts the block under the title, then replaces it in place', () => {
     const once = withRulesBlock('# App\n\nText\n', ['@stack/rules/a.md'])

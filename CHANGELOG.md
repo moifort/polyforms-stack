@@ -3,6 +3,12 @@
 Every version lists what changed and, when a rule change makes existing code non compliant,
 its migrations with their risk. The upgrade routine reads this first.
 
+## 0.1.1 (2026.10.21)
+
+- `init` writes the project's `.gitignore` again: npm leaves `.gitignore` files out of a
+  published package, so the template ships it as `gitignore`.
+- Migrations: none.
+
 ## 0.1.0 (2026.10.21)
 
 First version, harvested from Shiori.
