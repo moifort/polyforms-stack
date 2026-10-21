@@ -79,6 +79,7 @@ rules/
   15-tooling.md         Xcode and simulators, built-in browser, remote control
   16-routines.md        scheduled Claude tasks and what each may do
 skills/                 domain, graphql, ios-feature, appstore, stack-upgrade, stack-install
+routines/               scheduled Claude task prompts: sentry-autofix, daily-health, stack-upgrade
 hooks/                  shutdown-simulators-after-push, and later ones
 templates/              CLAUDE.md, project-context.md, .github/workflows/*, infra/*.tf, scripts/*
 migrations/<version>/<id>.md
@@ -115,7 +116,7 @@ Process rules (`00` to `08`, `12`, `15`, `16`) always apply; `stacks` selects th
 | Command | Behaviour |
 |---|---|
 | `init` | Asks stacks and placeholders, writes `stack.config.json`, runs `sync`, creates `CLAUDE.md` and `project-context.md` from the templates if absent, copies the templates the stacks need. |
-| `sync` | Renders placeholders, copies skills and hooks, registers the hooks, writes the installed version where `check` can read it. Idempotent; fails without writing on a missing placeholder. |
+| `sync` | Renders placeholders, copies skills and hooks, registers the hooks, renders the routines into the machine's scheduled-tasks folder, writes the installed version where `check` can read it. Idempotent; fails without writing on a missing placeholder. |
 | `check` | Non-zero if the project's copy differs from `sync`'s output or a raw placeholder remains. Run in the project's CI. |
 | `migrations <from> <to>` | Lists the migrations between two versions, in semver order, filtered on the project's stacks. `--json` for the routine. |
 
@@ -155,16 +156,19 @@ Followed by the review routine on a Renovate pull request labelled `stack`.
 4. Run the project's preflight. A failure caused by a migration reverts that commit and marks it
    `needs review`.
 5. Comment on the pull request: one line per migration with its outcome and the files touched.
-6. Merge only if every migration is `safe`, applied or not applicable, every `check` passes and CI
+6. Update the scheduled tasks if the version changed a routine.
+7. Merge only if every migration is `safe`, applied or not applicable, every `check` passes and CI
    is green. Otherwise label `stack:review` and leave it open.
 
 ## Skill: stack-install
 
 1. `bun add -d <package>`, then `init`.
 2. Add the Renovate package rule and `check` to CI.
-3. Bring the project in line, one domain at a time, from the validated templates: CI workflows,
+3. Create or update the scheduled tasks for the rendered routines (machine-scoped ones once,
+   project-scoped ones for this project).
+4. Bring the project in line, one domain at a time, from the validated templates: CI workflows,
    Terraform, Sentry, scripts.
-4. On an existing project, write a batched plan, one batch per domain.
+5. On an existing project, write a batched plan, one batch per domain.
 
 ## Content validation
 
