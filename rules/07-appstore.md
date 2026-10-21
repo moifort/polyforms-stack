@@ -20,9 +20,10 @@ unreadable authentication error. Without an Xcode account, `xcodebuild` signs wi
 
 ## TestFlight
 
-Two groups: an internal one that receives every build from every push to `{{MAIN_BRANCH}}`, and an
-external one. The notes job of the TestFlight workflow adds each build to the external group and
-submits it to Beta App Review. Adding a tester who already belongs to another app's group answers
+Two groups: an internal one ("Nightly") that receives the nightly build of `{{MAIN_BRANCH}}`, and
+an external one ("Public"). The notes job of the nightly workflow adds each build to the external
+group and submits it to Beta App Review, never to App Review. A change can be tried on a phone the
+next morning without tagging a release that is not one. Adding a tester who already belongs to another app's group answers
 409: create the tester with the group relationship instead.
 
 ## Captures and panels
