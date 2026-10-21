@@ -10,7 +10,7 @@ and for apps with a phone client, SwiftUI with the stack's conventions.
 
 ## Decision
 
-This project consumes the `@polyforms/stack` package. Its rules are rendered into `stack/`
+This project consumes the `@moifort/stack` package. Its rules are rendered into `stack/`
 and imported by `CLAUDE.md`; its templates seeded the repository; a version bump arrives as
 a Renovate pull request and is applied by the upgrade routine.
 

@@ -48,7 +48,7 @@ experience.
 | Topic | Decision |
 |---|---|
 | Reference project | Shiori wins every conflict; Vinarium next; Shuhari and Bazar last. |
-| Distribution | A public npm package, installed as a devDependency; the Swift components as a Swift package in the same repository, pulled by tag and tracked by Renovate's Swift manager. Name to confirm (`@polyforms/stack` needs an npm organisation; `@moifort/stack` exists as a scope already). |
+| Distribution | A public npm package, installed as a devDependency; the Swift components as a Swift package in the same repository, pulled by tag and tracked by Renovate's Swift manager. Name to confirm (`@moifort/stack` needs an npm organisation; `@moifort/stack` exists as a scope already). |
 | Language | Everything in the package in English. Product copy rules keep their placeholders. |
 | What the package holds | `rules/` (Markdown, by theme), `skills/`, `hooks/`, `templates/` (workflows, Terraform, scripts, CLAUDE.md, project-context.md), `migrations/`, `CHANGELOG.md`, a CLI. |
 | How a project consumes it | `CLAUDE.md` imports `rules/` from `node_modules` with `@` lines, so a version bump changes Claude's instructions without touching the project; `sync` copies skills and hooks into `.claude/` and renders placeholders. |

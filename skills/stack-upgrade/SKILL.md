@@ -1,11 +1,11 @@
 ---
 name: stack-upgrade
-description: Use when a Renovate pull request bumps @polyforms/stack in a project, to sync the rules and apply the version's migrations.
+description: Use when a Renovate pull request bumps @moifort/stack in a project, to sync the rules and apply the version's migrations.
 ---
 
 # Upgrade the stack in a project
 
-1. Confirm the pull request bumps `@polyforms/stack`. Otherwise this skill does not apply.
+1. Confirm the pull request bumps `@moifort/stack`. Otherwise this skill does not apply.
 2. In the pull request's branch: `bun install`, `bunx stack sync`, commit
    `chore(stack): sync to <version>`.
 3. `bunx stack migrations <old> <new> --json`: the migrations between the two versions, for

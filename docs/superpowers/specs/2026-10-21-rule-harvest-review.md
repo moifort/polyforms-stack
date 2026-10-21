@@ -26,7 +26,7 @@ autre source ajoute quelque chose), **Trancher** (deux sources se contredisent, 
 - **D-01 Projet de référence.** Shiori gagne les conflits, Vinarium ensuite, Shuhari et Bazar en
   dernier. `dev-playbook` disait l'inverse. **Trancher**, proposition : oui.
 - **D-02 Langue.** Tout le paquet en anglais. **Garder.**
-- **D-03 Nom du paquet.** `@polyforms/stack` demande une organisation npm ; `@moifort/stack` tient
+- **D-03 Nom du paquet.** `@moifort/stack` demande une organisation npm ; `@moifort/stack` tient
   dans le scope existant. Le nom du dépôt est `polyforms-stack` dans les deux cas. **Trancher.**
 - **D-04 Les formes longues sont des skills.** Les annexes de `dev-playbook` (créer un domaine,
   GraphQL, feature iOS, captures) et les skills globaux `ddd-architecture` (381 lignes) et

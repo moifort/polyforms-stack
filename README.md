@@ -1,4 +1,4 @@
-# @polyforms/stack
+# @moifort/stack
 
 How Polyforms apps are built, as one versioned package: the rules Claude follows on every
 project, the skills and routines it runs, and the templates a new app starts from. A Firebase
@@ -7,7 +7,7 @@ backend in TypeScript, a SwiftUI app, Terraform, GitHub Actions, Sentry.
 ## Start an app
 
 1. `mkdir <app> && cd <app> && git init`
-2. `bunx @polyforms/stack init --stacks backend,ios`
+2. `bunx @moifort/stack init --stacks backend,ios`
 3. `bun install && bun run preflight`
 
 ## Keep an app up to date

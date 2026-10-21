@@ -22,7 +22,7 @@
     },
     {
       "description": "The stack package: never automerged; the upgrade routine applies its migrations and merges",
-      "matchPackageNames": ["@polyforms/stack"],
+      "matchPackageNames": ["@moifort/stack"],
       "labels": ["dependencies", "stack"],
       "automerge": false
     }

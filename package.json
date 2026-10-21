@@ -1,5 +1,5 @@
 {
-  "name": "@polyforms/stack",
+  "name": "@moifort/stack",
   "version": "0.1.0",
   "description": "The Polyforms stack: rules, skills, hooks, routines and templates for a Firebase + iOS app, versioned and upgraded through Renovate.",
   "license": "MIT",

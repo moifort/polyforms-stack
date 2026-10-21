@@ -1,6 +1,6 @@
 ---
 name: stack-install
-description: Use to start a new Polyforms project, or to bring an existing project onto the @polyforms/stack package (init, templates, Renovate, CI check, routines).
+description: Use to start a new Polyforms project, or to bring an existing project onto the @moifort/stack package (init, templates, Renovate, CI check, routines).
 ---
 
 # Install the stack
@@ -9,7 +9,7 @@ description: Use to start a new Polyforms project, or to bring an existing proje
 
 ```bash
 mkdir <app> && cd <app> && git init
-bunx @polyforms/stack init --stacks backend,ios --set APP_TAGLINE="..."
+bunx @moifort/stack init --stacks backend,ios --set APP_TAGLINE="..."
 bun install
 ```
 
@@ -20,7 +20,7 @@ repository) come from the folder name and can be overridden with `--set NAME=val
 Then, in order, verifying each:
 1. `bun run preflight` green.
 2. `bun run ios:build` and `bun run ios:test` green (ios stack).
-3. `bunx @polyforms/stack bootstrap <app>` creates GitHub, Sentry, Renovate, GCP, and pushes
+3. `bunx @moifort/stack bootstrap <app>` creates GitHub, Sentry, Renovate, GCP, and pushes
    the first commit; the Deploy workflow does the first deploy. It ends with the list of
    what needs the person.
 4. Write the deployed function URL into `ios/<App>/Shared/APIClient.swift`.

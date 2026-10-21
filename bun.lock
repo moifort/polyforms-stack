@@ -3,7 +3,7 @@
   "configVersion": 1,
   "workspaces": {
     "": {
-      "name": "@polyforms/stack",
+      "name": "@moifort/stack",
       "dependencies": {
         "semver": "7.7.2",
         "zod": "4.1.12",

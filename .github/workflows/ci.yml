@@ -34,7 +34,7 @@ jobs:
         run: |
           mkdir -p sample && cd sample && git init -q
           bun ../stack/bin/stack.ts init --stacks backend
-          sed -i "s#\"@polyforms/stack\": \"[^\"]*\"#\"@polyforms/stack\": \"file:../stack\"#" package.json
+          sed -i "s#\"@moifort/stack\": \"[^\"]*\"#\"@moifort/stack\": \"file:../stack\"#" package.json
       - name: Check
         working-directory: sample
         run: |

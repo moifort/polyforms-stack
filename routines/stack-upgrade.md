@@ -12,7 +12,7 @@ every project of the organisation. Report in the person's language.
 ## Discovery
 For every repository under `{{CODE_DIR}}` whose `origin` points at `moifort/*`:
 `gh pr list --repo <owner>/<name> --label stack --state open --json number,title,headRefName`.
-A pull request bumping `@polyforms/stack` follows "Stack pull request"; a pull request labelled
+A pull request bumping `@moifort/stack` follows "Stack pull request"; a pull request labelled
 `major` follows "Major dependency"; anything else is reported, not touched.
 
 ## Stack pull request
