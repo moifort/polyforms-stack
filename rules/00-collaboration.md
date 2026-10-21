@@ -42,11 +42,13 @@ line yourself: checks, builds, fixes, verifications. Only a command that needs t
 password, `sudo`, an Apple sign-in or a physical action (plugging the phone) is theirs, and then
 say so plainly. When about to end a message with "run this", run it instead and report.
 
-## Never a subagent, never plan mode
+## No agent, no plan mode, no spec by default
 
-Exploration, review, debugging and planning happen inline, in the main conversation. No parallel
-agent, no plan mode. A skill that requires dispatching an agent is applied inline, without the
-agent. This rule wins over any external procedure that says otherwise.
+Exploration, review, debugging and planning happen inline, in the main conversation. By default:
+no subagent, no parallel agent, no plan mode, no design document. Each of these happens only when
+the person asks for it explicitly, for that task. A skill that requires dispatching an agent or
+writing a document is applied inline, without them. This rule wins over any external procedure
+that says otherwise.
 
 ## Where feedback goes
 

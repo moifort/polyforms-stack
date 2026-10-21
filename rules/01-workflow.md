@@ -3,20 +3,20 @@
 ## The cycle
 
 1. **Framing.** Understand the intent before coding. If two readings of the request lead to two
-   different pieces of work, ask now, not at the end. For anything new, brainstorm first; the
-   outcome is a design document.
-2. **Design document** for anything beyond a few files or whose approach is not obvious:
-   `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md`, committed. A paid API call states its
-   cost here, see [13-ai.md](13-ai.md).
-3. **Plan**, then **implementation**, inline, to the final result, without checkpoints.
+   different pieces of work, ask now, not at the end.
+2. **No spec, no plan mode by default.** A design document
+   (`docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md`) or a written plan is produced only when
+   the person asks for one. Without that, the plain explanation below is given in the conversation
+   and the work starts. A paid API call states its cost either way, see [13-ai.md](13-ai.md).
+3. **Implementation**, inline, to the final result, without checkpoints.
 4. **Verification**, below.
 5. **Review** before commit, see [03-code-review.md](03-code-review.md).
 6. **Commit**, see [02-commits.md](02-commits.md).
 7. **Screenshot** when a screen changed, below.
 
-## What a plan contains
+## What an explanation or a plan contains
 
-A plan never opens with a code block. It opens with a plain section:
+Before the work, in the conversation (or in the plan when one was asked), a plain section:
 
 - the domains touched: created, modified, removed;
 - how it works today, what it gives afterwards, ideally a table of before and after;
