@@ -33,12 +33,12 @@ A claim of success without the command output behind it has no value. Before eve
 
 | What was touched | What runs |
 |---|---|
-| Backend | `{{TYPECHECK_COMMAND}}` (after `{{PREPARE_COMMAND}}` if routes changed), the three test families **separately** (see below), `{{LINT_COMMAND}}` |
-| The API schema | `{{SCHEMA_CHECK_COMMAND}}`: a removal not preceded by a deprecation is refused, see [11-ops.md](11-ops.md#api-evolution) |
-| The app | `{{APP_BUILD_COMMAND}}`; and after any on-screen text change, `{{STRINGS_CHECK_COMMAND}}` until it reports every string translated, see [08-copy.md](08-copy.md#localisation) |
+| Backend | `bun run typecheck` (after `bun run prepare` if routes changed), the three test families **separately** (see below), `bun run lint` |
+| The API schema | `bun run schema:check`: a removal not preceded by a deprecation is refused, see [11-ops.md](11-ops.md#api-evolution) |
+| The app | `bun run ios:build`; and after any on-screen text change, `bun run ios:strings` until it reports every string translated, see [08-copy.md](08-copy.md#localisation) |
 
-The three test families run **separately** (`{{TEST_UNIT_COMMAND}}`, `{{TEST_INT_COMMAND}}`,
-`{{TEST_FEAT_COMMAND}}`): a module mock declared in one test file serves every file of the same
+The three test families run **separately** (`bun run test:unit`, `bun run test:int`,
+`bun run test:feat`): a module mock declared in one test file serves every file of the same
 run, so a single combined run passes while CI, which runs them apart, goes red.
 
 ## Mockups before a complex screen

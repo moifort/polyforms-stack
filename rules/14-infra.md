@@ -33,7 +33,7 @@ start.
 
 ## Bootstrap: one line creates a project
 
-`bunx {{PACKAGE_NAME}} bootstrap <app>` runs once from the person's machine and leaves a project
+`bunx @polyforms/stack bootstrap <app>` runs once from the person's machine and leaves a project
 that deploys itself. It is a command of the package's CLI (TypeScript on Bun, like the rest), not
 a shell script: it reads the keychain, drives `terraform` (installed once on the machine, see
 [15-tooling.md](15-tooling.md)), `gh` and `git`, and reports. Two Terraform roots, because two
@@ -62,7 +62,7 @@ kinds of credentials:
   need the person: the App Store Connect app record and the Sign in with Apple key (no API),
   the Apple developer agreement, the DNS of the project's domain, the GA4 link when the API
   refuses it. Each item says where to click and what value to paste back.
-- `bunx {{PACKAGE_NAME}} teardown <app>` destroys both roots, after a typed confirmation of the
+- `bunx @polyforms/stack teardown <app>` destroys both roots, after a typed confirmation of the
   app's name.
 
 ## Rules

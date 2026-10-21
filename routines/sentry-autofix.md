@@ -21,7 +21,7 @@ open pull request and no commit of the last 14 days on `main` carries `Fixes <SH
 does, the issue is being handled, skip it.
 
 ## Sentry access
-- Org `{{SENTRY_ORG}}`, API `https://sentry.io/api/0/`.
+- Org `polyforms`, API `https://sentry.io/api/0/`.
 - In the cloud, the token is a **network secret** of the cloud environment for the host
   `sentry.io`: the proxy adds the `Authorization` header to every request to that host, so call
   the API with `curl` **without** an authorization header and never look for a token in a file or
@@ -31,12 +31,12 @@ does, the issue is being handled, skip it.
 
 ## Projects
 The task's repositories are cloned at the start of the run: work in them. A Sentry project
-`<name>-<platform>` maps to the repository `{{GITHUB_OWNER}}/<name>`; a Sentry project whose
+`<name>-<platform>` maps to the repository `moifort/<name>`; a Sentry project whose
 repository is not among the task's repositories is listed as unmapped in the report and skipped.
 Add it to the task to cover it.
 
 ## Steps
-1. Per project: `GET /projects/{{SENTRY_ORG}}/{slug}/issues/?query=is:unresolved&statsPeriod=14d&sort=freq`.
+1. Per project: `GET /projects/polyforms/{slug}/issues/?query=is:unresolved&statsPeriod=14d&sort=freq`.
    Keep issues with events in the last 7 days. Skip external or transient causes (timeouts,
    third-party 5xx, user cancellations) unless the code handles them wrongly.
 2. Skip issues already fixed: after `git fetch origin`,
@@ -60,7 +60,7 @@ Add it to the task to cover it.
 9. Watch CI for the pushed commit (`gh run list --json databaseId,headSha,name,status,conclusion`
    filtered on `headSha`, then `gh run watch <id> --exit-status`). On failure, fix forward if the
    cause is clear, otherwise revert, push the revert, report.
-10. Once CI is green, Deploy included: `PUT /organizations/{{SENTRY_ORG}}/issues/{id}/` with
+10. Once CI is green, Deploy included: `PUT /organizations/polyforms/issues/{id}/` with
     `{"status":"resolvedInNextRelease"}`, never plain `resolved`.
 11. Merge the pull requests opened by earlier passes whose CI is green (`gh pr list --author @me
     --label sentry`), then resolve their issues as in step 10.

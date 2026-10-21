@@ -6,11 +6,11 @@ cadence: "0 9 1 * *"
 title: "{{APP_NAME}} deprecations (monthly)"
 ---
 
-Remove from {{APP_NAME}}'s API what no build on sale still asks for (repository `{{REPO_PATH}}`).
+Remove from {{APP_NAME}}'s API what no build on sale still asks for (repository `{{CODE_DIR}}/{{REPO_NAME}}`).
 Follow the project's `CLAUDE.md` and the stack rules on API evolution. Report in the person's
 language.
 
-1. In a worktree of `origin/main`, run `{{DEPRECATIONS_COMMAND}}` with the store API key from
+1. In a worktree of `origin/main`, run `bun run deprecations` with the store API key from
    the environment (never printed).
 2. For every element reported **removable**: remove it from the schema, the resolver, and the
    code and tests only it used. Leave anything in grace, waiting, still asked, or to check by

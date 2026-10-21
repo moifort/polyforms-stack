@@ -6,8 +6,8 @@ cadence: "0 12 * * *"
 title: "{{APP_NAME}} health (daily at noon)"
 ---
 
-Daily production health pass for {{APP_NAME}} (repository `{{REPO_PATH}}`, GCP project
-`{{GCP_PROJECT}}`, region `{{GCP_REGION}}`, backend Cloud Function gen 2 `{{FUNCTION_NAME}}`,
+Daily production health pass for {{APP_NAME}} (repository `{{CODE_DIR}}/{{REPO_NAME}}`, GCP project
+`{{APP_SLUG}}-polyforms`, region `europe-west3`, backend Cloud Function gen 2 `{{APP_SLUG}}-server`,
 request logs under `resource.type="cloud_run_revision"`). Analyse the last 24 hours of costs,
 performance and monitoring, fix what is broken in code, push to main, watch CI. Report in the
 person's language.
@@ -20,7 +20,7 @@ subagent. Other sessions may be editing the checkout: work in a worktree, or com
 files with an explicit pathspec; never stash, reset, switch branches, amend or force-push.
 
 ## 0. Preconditions
-- Every `gcloud` / `bq` command is prefixed with `CLOUDSDK_CONFIG={{OBSERVER_GCLOUD_CONFIG}}`,
+- Every `gcloud` / `bq` command is prefixed with `CLOUDSDK_CONFIG=$HOME/.config/claude-observer/gcloud`,
   the read-only observer account's own configuration. Check it with `gcloud auth
   print-access-token`. If it fails, never fall back to the person's login and never run `gcloud
   auth login`: do the steps that need no GCP and put the failure at the top of the report.
@@ -28,8 +28,8 @@ files with an explicit pathspec; never stash, reset, switch branches, amend or f
 - `git pull --ff-only` if the tree allows it; otherwise work on what is there and say so.
 
 ## 1. Costs
-- Billing export: `bq query --project_id={{GCP_PROJECT}} --use_legacy_sql=false` on
-  `{{BILLING_TABLE}}`, filtered on `project.id = "{{GCP_PROJECT}}"`, cost plus credits per day
+- Billing export: `bq query --project_id={{APP_SLUG}}-polyforms --use_legacy_sql=false` on
+  `{{BILLING_TABLE}}`, filtered on `project.id = "{{APP_SLUG}}-polyforms"`, cost plus credits per day
   (`Europe/Paris`) and per service and SKU for the last 8 days. The export lags hours: yesterday
   may be partial, say so.
 - Flag any service above twice its 7-day daily average, any AI API above `{{AI_DAILY_ALERT}}` a
@@ -49,9 +49,9 @@ files with an explicit pathspec; never stash, reset, switch branches, amend or f
   explain a spike; never copy personal data into the report.
 
 ## 3. Monitoring
-- CI: `gh run list --repo {{GITHUB_OWNER}}/{{REPO_NAME}} --limit 30 --json databaseId,name,headSha,status,conclusion,createdAt`:
+- CI: `gh run list --repo moifort/{{REPO_NAME}} --limit 30 --json databaseId,name,headSha,status,conclusion,createdAt`:
   any failed run on main in 24 h, Deploy first, including its migrations step.
-- Cloud Scheduler: `gcloud scheduler jobs list --project={{GCP_PROJECT}} --location={{GCP_REGION}}`,
+- Cloud Scheduler: `gcloud scheduler jobs list --project={{APP_SLUG}}-polyforms --location=europe-west3`,
   state and last attempt of each job; a paused or failed job is a finding.
 - The app configuration endpoint on the production host answers 200.
 - App Store and TestFlight are out of scope.

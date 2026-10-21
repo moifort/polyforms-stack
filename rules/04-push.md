@@ -7,9 +7,9 @@ applies in order, then the push, then the watch, then the cleanup.
 
 1. **Generated code.** If an API contract moved, regenerate and commit the produced files, so the
    typed clients match what is deployed.
-2. **Linter in write mode.** `{{LINT_FIX_COMMAND}}`, commit what it fixed. CI is not a linter: a
+2. **Linter in write mode.** `bun run lint:fix`, commit what it fixed. CI is not a linter: a
    lint error is never discovered from a red pipeline.
-3. **Preflight.** `{{PREFLIGHT_COMMAND}}` green, the test families run separately
+3. **Preflight.** `bun run preflight` green, the test families run separately
    ([01-workflow.md](01-workflow.md#verification-before-a-commit)).
 4. **Nothing else moves.** No changelog (written at release only), no README, no screenshots:
    captures are regenerated at release, not at push.
@@ -20,7 +20,7 @@ file added to the repository is excluded from the linter in the same commit.
 ## Workflow files
 
 Pushing a change under `.github/workflows` needs a token with the `workflow` scope. If the push is
-refused, push over SSH (`git push git@github.com:<owner>/<repo>.git {{MAIN_BRANCH}}`); the lasting
+refused, push over SSH (`git push git@github.com:<owner>/<repo>.git main`); the lasting
 fix is `gh auth refresh -s workflow`, interactive, the person's to run.
 
 ## After

@@ -34,7 +34,7 @@ The iOS model:
 - With that setup, the catalogue compiler emits the source-language table only when **each key
   carries an explicit source-language unit**; a key without one falls back to English on a
   source-language phone.
-- After any on-screen text change: build, then `{{STRINGS_CHECK_COMMAND}} --write` (fills the
+- After any on-screen text change: build, then `bun run ios:strings --write` (fills the
   source unit, drops stale keys, lists what lacks English), fill the English, rerun without
   `--write` until it reports every string translated, commit the catalogue with the UI change. CI
   runs the same check without `--write`.

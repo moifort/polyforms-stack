@@ -1,11 +1,11 @@
 # Release
 
-A release is a git tag `{{RELEASE_TAG_PATTERN}}`. The tag does everything: build, upload,
+A release is a git tag `ios-v<version>`. The tag does everything: build, upload,
 TestFlight, submission.
 
 ## The order
 
-1. **Deprecations.** `{{DEPRECATIONS_COMMAND}}` lists the schema fields and arguments no build on
+1. **Deprecations.** `bun run deprecations` lists the schema fields and arguments no build on
    sale for two weeks still asks for, and the build floor to set. One commit removes them and
    raises `MINIMUM_SUPPORTED_BUILD` to the proposed value, which sends older builds to the update
    screen. Never raise the floor by hand. See [11-ops.md](11-ops.md#api-evolution).
@@ -13,7 +13,7 @@ TestFlight, submission.
    version headings everywhere, see [06-changelog.md](06-changelog.md).
 3. **Approval.** The notes in `{{REVIEW_LANGUAGE}}` are shown in the conversation and approved
    explicitly. Corrections are carried into every language. No push on unapproved notes.
-4. **Push of `{{MAIN_BRANCH}}`**: it deploys the backend, which serves the notes to the app.
+4. **Push of `main`**: it deploys the backend, which serves the notes to the app.
 5. **Captures and store panels**, only when the person asks for them: regenerated on the
    machine, never in CI (far too slow there), committed to the repository, and uploaded by the
    release workflow from what the repository holds. See [07-appstore.md](07-appstore.md).

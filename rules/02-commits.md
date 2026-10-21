@@ -43,12 +43,12 @@ re-read `git log -1` in the same command as the amend, never from a HEAD observe
 
 ## Branch
 
-Work lands on `{{MAIN_BRANCH}}`. No feature branch, no pull request, unless asked.
+Work lands on `main`. No feature branch, no pull request, unless asked.
 
 ## Several sessions on one project
 
 When several Claude sessions work on the same project at once, **each session works in its own git
-worktree** and merges into `{{MAIN_BRANCH}}` when its task is done. A fresh worktree lacks the
+worktree** and merges into `main` when its task is done. A fresh worktree lacks the
 gitignored files the build needs (app secrets, Firebase plist, package resolution, generated API
 client): copy them from the main checkout first, see [15-tooling.md](15-tooling.md).
 
@@ -59,7 +59,7 @@ Fallback rules when two sessions share a checkout anyway:
   into the shared index;
 - never split the hunks of a generated file (an exported schema): a zero-context patch applies at
   the wrong place silently. Parse the staged blob before committing, or regenerate it whole;
-- after committing, once other sessions have committed on top, grep `{{MAIN_BRANCH}}` for your
+- after committing, once other sessions have committed on top, grep `main` for your
   change before reporting it done: a stale copy of a file committed by another session can undo
   it.
 

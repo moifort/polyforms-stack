@@ -12,7 +12,7 @@ system synchronised groups: a new file is picked up without touching the project
 - **Pure**: receives values and actions, draws them. No API call, no fetching `.task`, no
   `.shared` singleton, no notification centre. Renders in a `#Preview` from fixtures alone.
   Everything under `components/` and `Shared/Components/` is pure, and
-  `{{COMPONENTS_CHECK_COMMAND}}` fails the build when it is not.
+  `bun run ios:components` fails the build when it is not.
 - **Connected**: the `{Feature}Screen` at the root of a feature. It owns the ViewModel, the
   tasks, the change notices, the navigation and the sheets, and hands values and actions to its
   `Page`. It draws nothing of its own.
@@ -178,7 +178,7 @@ tile) stay in their app: they carry the product.
 ## Build and capture
 
 ```bash
-{{APP_BUILD_COMMAND}}
+bun run ios:build
 ```
 
 - Never clear the build cache to unblock a broken build; diagnose the cause.

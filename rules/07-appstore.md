@@ -20,7 +20,7 @@ unreadable authentication error. Without an Xcode account, `xcodebuild` signs wi
 
 ## TestFlight
 
-Two groups: an internal one ("Nightly") that receives the nightly build of `{{MAIN_BRANCH}}`, and
+Two groups: an internal one ("Nightly") that receives the nightly build of `main`, and
 an external one ("Public"). The notes job of the nightly workflow adds each build to the external
 group and submits it to Beta App Review, never to App Review. A change can be tried on a phone the
 next morning without tagging a release that is not one. Adding a tester who already belongs to another app's group answers

@@ -18,7 +18,7 @@ sessions. So:
   repository;
 - a change a cloud routine cannot verify itself (an app fix needs Xcode) is pushed as a branch
   with a pull request, and merged by the next pass once CI built it, instead of going to
-  `{{MAIN_BRANCH}}` directly;
+  `main` directly;
 - a routine that needs the machine (a simulator, the keychain, a capture) is a **desktop**
   scheduled task, which runs only while the app is open and the Mac awake, and catches up one
   missed run on wake.
@@ -39,7 +39,7 @@ Remote Control connected and is not reliable from a scheduled run.
 
 | Routine | Cadence, runtime | Does | Never |
 |---|---|---|---|
-| Sentry triage | Every six hours, cloud, every app | Reads unresolved issues, fixes the cause with a verified commit, pushes to `{{MAIN_BRANCH}}`, watches CI, marks `resolvedInNextRelease` | Marks plain `resolved`; touches an issue it did not fix |
+| Sentry triage | Every six hours, cloud, every app | Reads unresolved issues, fixes the cause with a verified commit, pushes to `main`, watches CI, marks `resolvedInNextRelease` | Marks plain `resolved`; touches an issue it did not fix |
 | Daily health | Noon, cloud, per app | Through the observer account: spend from the billing export, performance, monitoring; fixes and pushes what is code; reports cold starts as a figure | Proposes a warm instance; reads errors (Sentry's job) |
 | Upgrades | Every morning after Renovate, cloud | Stack pull requests (label `stack`): the `stack-upgrade` skill, sync, migrations with their checks, merge when every migration is safe and CI is green. Major dependency pull requests: reads the changelog and migration guide, applies the code changes, deploys to staging, merges when CI and staging are green, otherwise comments and leaves open | Force-merges; edits rules; touches a pull request without one of those labels |
 | Deprecations | Monthly, cloud, per app | Runs the deprecations script, removes what is removable, raises the build floor, pushes, watches CI and Deploy | Removes anything in grace or still asked; raises the floor by hand |

@@ -3,7 +3,7 @@
 ## Deployment goes through CI only
 
 Never `terraform apply`, never a backend deploy, never a migration from the local machine. The
-Deploy workflow on a push to `{{MAIN_BRANCH}}` is the only path to production: build, `terraform
+Deploy workflow on a push to `main` is the only path to production: build, `terraform
 apply`, then `POST /admin/migrate`. If production looks stale, `gh run list --workflow deploy.yml`
 first; fix the pipeline, never the machine.
 
@@ -36,9 +36,9 @@ in two steps.
 1. **Deprecate, in the commit where the app stops asking.** The operations stop selecting the
    field or argument; the server marks it with a `deprecationReason` that names the version and
    the date it was deprecated and what replaces it (`"since 1.3 (2026-10-21): use coverSources"`).
-   The resolver keeps working. `{{SCHEMA_CHECK_COMMAND}}` in CI refuses any breaking change that
+   The resolver keeps working. `bun run schema:check` in CI refuses any breaking change that
    was not deprecated first.
-2. **Remove, once no build on sale asks for it.** `{{DEPRECATIONS_COMMAND}}` finds, for each
+2. **Remove, once no build on sale asks for it.** `bun run deprecations` finds, for each
    deprecated element, the first build whose operations no longer select it and compares it
    with what the store sells: removable when a build without it has been on sale for **fourteen
    days**, in grace until then, waiting while the store still sells a build that asks for it.
