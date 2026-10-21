@@ -149,6 +149,14 @@ a no-cache option in tests. The unit test target runs in CI on every push.
 
 ## Physical device
 
-Install on the person's device only when they ask, never before the screenshot of the change is
-approved. Clean tree: run the install script in place. Dirty tree with another session's work:
-build HEAD from a worktree. Relay the raw build and install output; no success claim without it.
+The install on the person's phone closes a task that touched the app, once the screenshot of the
+change is approved, never before:
+
+- **App only**: install right away, before any push. The phone talks to production, which has
+  not changed.
+- **Backend and app**: install after the push, once the Deploy workflow is green. Installing
+  earlier ships an app against a server that does not have its changes yet.
+
+Clean tree: run the install script in place. Dirty tree with another session's work: build HEAD
+from a worktree. Run the API codegen first after a schema change. Relay the raw build and install
+output; no success claim without it.

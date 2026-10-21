@@ -60,6 +60,12 @@ A successful push closes the session's working set:
 
 What is kept is what the repository holds; everything else was scaffolding.
 
+## Install on the phone
+
+When the push carried app changes next to backend changes, the install on the person's phone
+follows the push, once Deploy is green ([10-ios.md](10-ios.md#physical-device)). An app-only
+change was installed before the push.
+
 ## No CI for prose
 
 Deploy, schema and test workflows carry `paths-ignore` for `site/**`, `docs/**`,
