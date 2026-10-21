@@ -17,14 +17,30 @@ previous one, under that release's version and date.
 
 ## What to write
 
-Only what matters to the person using the product, in their words: the visible effect, nothing
-else.
+The reader is not technical. An entry says what changed **for them**, in their words, and nothing
+else. Two tests before writing a line: does the person notice it while using the app, and would
+they understand the sentence without knowing how the app is built. No on both, no entry.
 
-- A fix is one short sentence saying what now works. No cause, no frequency ("one time in
-  three"), no model, call, search or API named. The technical story is in the commit message.
-- A renamed label, a moved subtitle, a removed counter have no impact: they are not logged.
-- Never the app's name in an entry. Never a line about which languages the app is available in.
-- The tone of [08-copy.md](08-copy.md) applies in every language.
+What goes in:
+
+- a new feature or a new capability the person can use, named where it is in the interface;
+- a problem they could meet, now fixed, described by its effect;
+- a change in speed or behaviour they will feel.
+
+What stays out, whatever the effort behind it:
+
+- infrastructure, deployment, CI, scripts, README, dependencies, refactors: invisible, so absent;
+- micro changes: a corrected label, a reworded sentence, a replaced image, a moved button;
+- anything the person does not know exists (a cache, a quota mechanism, a model switch).
+
+How to write it:
+
+- the visible effect, never the mechanism. Raising the number of concurrent reads on the
+  database becomes "Performance: the library and the series now open faster";
+- a fix is one short sentence saying what now works. No cause, no frequency ("one time in
+  three"), no model, call, search or API named. The technical story is in the commit message;
+- never the app's name in an entry; never a line about which languages the app is available in;
+- the tone of [08-copy.md](08-copy.md) applies in every language.
 
 ## Approval
 
