@@ -1,5 +1,14 @@
 # Commits
 
+## The history is the golden source
+
+The commit history is the source of truth for what was done and why. Every message is written for
+the reader who comes back months later, Claude included: what changed, the decision behind it, the
+alternative rejected, the cost of a paid call, the issue or feedback that triggered it. Before
+taking a decision, read the history (`git log`, `git log -S`, `git blame`): what was tried, what was
+reverted and why, which direction was chosen. A good split (one decision, one commit) and a good
+message are what make that reading possible.
+
 ## Format
 
 Conventional commits: `type(scope): subject`, English, lowercase, imperative, no trailing period.
@@ -7,8 +16,14 @@ Types: `feat`, `fix`, `refactor`, `perf`, `docs`, `test`, `chore`, `ci`. The sco
 domain deduced from the paths touched, never an invented taxonomy; a cross-cutting change takes
 `deps`, `ci`, `config`. A commit needing two scopes is probably two commits.
 
-The body explains the why when it is not obvious, and states the cost of a paid API call. It never
-paraphrases the diff. Every commit ends with the `Co-Authored-By` trailer.
+The body explains the why, the decision taken and the alternative rejected, and states the cost of
+a paid API call. It never paraphrases the diff. Every commit ends with the `Co-Authored-By`
+trailer.
+
+A commit that touches only documentation, a README, specs, or anything that does not change the
+code, the served content or the app's strings ends its subject with `[skip ci]`: a full pipeline
+with a deployment is not spent on prose. Never on a commit that touches the site (Pages would not
+publish) or the served changelogs. See [04-push.md](04-push.md#no-ci-for-prose).
 
 ## Never ask
 
