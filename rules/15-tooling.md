@@ -1,5 +1,19 @@
 # Tooling on the development machine
 
+## What a machine needs
+
+Installed once; the bootstrap checks they are there and names what is missing.
+
+| Tool | Install | Used for |
+|---|---|---|
+| Bun | `curl -fsSL https://bun.sh/install \| bash` | Backend, scripts, this package's CLI |
+| Xcode, latest final | Mac App Store | The app; `sudo xcode-select -s /Applications/Xcode.app/Contents/Developer` once, the person's to run |
+| `gh` | `brew install gh`, then `gh auth login` | GitHub: runs, pull requests, secrets |
+| `gcloud` | `brew install --cask google-cloud-sdk` | Production reads through the observer configuration |
+| Terraform | `brew install terraform` | The bootstrap and local plans |
+| `apollo-ios-cli` | Bundled in the app's Swift package checkout, never a global install | GraphQL codegen for the app |
+| JDK and Firebase CLI | Only with the `e2e` stack | The emulators |
+
 ## Runtime
 
 Always `bun` / `bunx`, never `npm` / `npx`. Biome for formatting and linting: spaces, single
@@ -10,25 +24,38 @@ quotes, no semicolons, line width 100.
 - Build with the latest final Xcode. `DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer`
   is required for `xcodebuild`, `simctl` and `xcstringstool` while `xcode-select` points at the
   Command Line Tools; switching it needs the person's password.
-- **Never download a simulator runtime or a platform without asking.** Each is several
-  gigabytes. Only the versions matching the installed SDK; from the command line
-  (`xcodebuild -downloadPlatform <name>`), never through Xcode's UI; one download at a time
-  (`pgrep -f downloadPlatform` first, several block each other on "Preparing to download").
+- **Always the simulator runtime already on the machine.** The reference device is the iPhone of
+  the runtime `xcrun simctl list runtimes` shows installed; a build or a capture targets that
+  one. Never download another runtime or platform without asking: each is several gigabytes.
+  When one is needed: only the version matching the installed SDK, from the command line
+  (`xcodebuild -downloadPlatform <name>`), never through Xcode's UI, one download at a time
+  (`pgrep -f downloadPlatform` first; several block each other on "Preparing to download").
   Progress is the size of `/Library/Developer/CoreSimulator/Volumes`, not the program's messages.
-- A download stuck on "Preparing to download" with no byte transferred is the network first: macOS
-  suspends system asset downloads on a connection it considers cellular, an iPhone hotspot
-  included, silently. Check the interface and the Wi-Fi name before anything else; the daemon is
-  not broken.
-- Simulators are shut down after every push by the hook; a capture uses a derived data path unique
-  to the session and reinstalls right before each launch.
+- A download stuck on "Preparing to download" with no byte transferred is the network first:
+  macOS suspends system asset downloads on a connection it considers cellular, an iPhone
+  hotspot included, silently. Check the interface and the Wi-Fi name before anything else; the
+  daemon is not broken.
+- **One simulator at a time on the machine.** Every session and every project uses the same
+  reference device, booted on demand if it is not, and never shut down by a session: the push
+  hook shuts it, with Simulator.app. A session installs its own build into it right before each
+  launch, from a derived data path unique to the session, so two sessions sharing the device
+  never launch each other's build. Two booted simulators is the exception that needs a reason
+  (a capture on a second size).
 - `simctl io <udid> screenshot` works when the simulator tool's own capture fails.
 
-## Browser
+## Browser, and doing things end to end
 
 Always the built-in browser of the Claude app, never Claude in Chrome, even when asked to "go to
-Chrome". When a page needs a sign-in, let the person sign in there. Some console actions have no
-API (a price schedule, privacy answers, a subscription submission): they are done in that browser,
-signed in as the person.
+Chrome". When the person says "go to the browser and click here", Claude goes and clicks: it
+drives the browser, fills the forms, runs the commands, and goes to the end of the task. When a
+page needs a sign-in, it asks the person to sign in there, then continues. Some console actions
+have no API (a price schedule, privacy answers, a subscription submission): they are done in that
+browser, signed in as the person.
+
+The only things that wait for a go, said in one message with what will be done and why:
+**reading production data** and **anything that changes production** (a deploy, a console
+setting, a store submission, a purchase). Everything else (code, commands, builds, the person's
+own sites and consoles in read mode, GitHub, CI) is done without asking.
 
 ## Git and GitHub
 
@@ -47,6 +74,8 @@ Driving a project from the Claude app on a phone is a CLI process per project
 
 ## Reading production
 
-Unattended reads (logs, metrics, billing, Firestore) go through the observer service account's own
-`gcloud` configuration ([14-infra.md](14-infra.md)); `gcloud auth login` is the person's and
-expires. Firestore's REST API needs `Content-Type: application/json` or answers a misleading 400.
+Unattended reads (logs, metrics, billing, Firestore) go through the **Claude observer account**,
+one for every Polyforms project ([14-infra.md](14-infra.md)), in its own `gcloud` configuration;
+`gcloud auth login` is the person's and expires. In an interactive session, a production read
+is announced and waits for the go; a routine the person configured has its go in its prompt.
+Firestore's REST API needs `Content-Type: application/json` or answers a misleading 400.

@@ -37,12 +37,17 @@ lot, not for a checkpoint. A plan runs to its final result in one go; validation
 gathered and shown at the end, not used as a pause. Never ask permission to commit: see
 [02-commits.md](02-commits.md).
 
-## Run commands yourself
+## Run commands yourself, go to the end
 
 A list of manual steps for the person to run is a failure, not a deliverable. Run every command
-line yourself: checks, builds, fixes, verifications. Only a command that needs the person's
-password, `sudo`, an Apple sign-in or a physical action (plugging the phone) is theirs, and then
-say so plainly. When about to end a message with "run this", run it instead and report.
+line yourself: checks, builds, fixes, verifications; drive the browser when the task is in a
+browser; go to the end of the task. Only a command that needs the person's password, `sudo`, an
+Apple sign-in or a physical action (plugging the phone) is theirs, and then say so plainly. When
+about to end a message with "run this", run it instead and report.
+
+Two things wait for a go, asked in one message that says what will be done and why: reading
+production data, and anything that changes production (a deploy, a console setting, a store
+submission). See [15-tooling.md](15-tooling.md#browser-and-doing-things-end-to-end).
 
 ## No agent, no plan mode, no spec by default
 

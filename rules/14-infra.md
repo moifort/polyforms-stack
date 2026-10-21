@@ -20,17 +20,24 @@ Firestore `eur3`. Templates in `templates/infra/`.
 ## Staging
 
 Every app has a second GCP project, `<app>-staging-polyforms`, provisioned by the same Terraform
-(a workspace, same files, smaller quotas), scale to zero so it costs nothing idle. It exists to
-prove a deploy before production: a pull request labelled `staging` (every major dependency
-bump, every stack upgrade, anything touching infrastructure) is deployed there by the Deploy
-workflow, with a seeded dataset and its own Sentry environment; the app points at it through its
-server-URL override. Nothing in staging is ever production data. Not built on any project yet:
-Bazar is the first.
+(a workspace, same files, smaller quotas), scale to zero so it costs nothing idle. It is the
+production-like environment where anything is proven before production: a pull request labelled
+`staging` (every major dependency bump, every stack upgrade, anything touching infrastructure) is
+deployed there by the Deploy workflow; the end-to-end scenarios and any test that needs a real
+stack run against it; a seeded dataset and its own Sentry environment; the app points at it
+through its server-URL override. Nothing in staging is ever production data.
+
+It exists from the moment an app has real users to protect, and in any case before the first
+paid plan: with a handful of readers, production is the staging. Bazar is built with it from the
+start.
 
 ## Bootstrap: one line creates a project
 
 `bunx {{PACKAGE_NAME}} bootstrap <app>` runs once from the person's machine and leaves a project
-that deploys itself. Two Terraform roots, because two kinds of credentials:
+that deploys itself. It is a command of the package's CLI (TypeScript on Bun, like the rest), not
+a shell script: it reads the keychain, drives `terraform` (installed once on the machine, see
+[15-tooling.md](15-tooling.md)), `gh` and `git`, and reports. Two Terraform roots, because two
+kinds of credentials:
 
 | Root | Runs | Credentials | Creates |
 |---|---|---|---|
@@ -55,7 +62,8 @@ that deploys itself. Two Terraform roots, because two kinds of credentials:
   need the person: the App Store Connect app record and the Sign in with Apple key (no API),
   the Apple developer agreement, the DNS of the project's domain, the GA4 link when the API
   refuses it. Each item says where to click and what value to paste back.
-- `scripts/teardown.sh` destroys both roots, after a typed confirmation of the app's name.
+- `bunx {{PACKAGE_NAME}} teardown <app>` destroys both roots, after a typed confirmation of the
+  app's name.
 
 ## Rules
 
@@ -63,13 +71,18 @@ that deploys itself. Two Terraform roots, because two kinds of credentials:
   `.example`.
 - Secrets reach the function through Secret Manager only; the workflow never writes a key into
   an environment file.
-- The observer service account reads logs, metrics, scheduler, functions, Firestore and billing,
-  and nothing else: writes answer permission denied, checked. It lives in its own `gcloud`
-  configuration (`CLOUDSDK_CONFIG`) so the person's account is untouched and routines do not
-  depend on their login, which expires.
-- The billing export lives in one BigQuery dataset shared by every project; each project's runtime
-  and observer accounts get `dataViewer` on it through SQL `GRANT`, the IAM binding command being
-  allowlisted.
+- **One observer account for Claude, across every project** of the organisation
+  (`claude-observer`, in the neutral `polyforms-billing` project below), granted the read roles
+  (logging, monitoring, scheduler, functions, run, Firestore viewer, BigQuery job user and data
+  viewer) on each app project by that project's Terraform. Writes answer permission denied,
+  checked. It lives in its own `gcloud` configuration (`CLOUDSDK_CONFIG`) so the person's
+  account is untouched and routines do not depend on their login, which expires. Its key is on
+  the machine only, outside every repository.
+- **A neutral `polyforms-billing` GCP project** holds the billing export dataset and the
+  observer account, so that deleting an app never takes the invoice or the reader of every
+  other app with it. Each project's runtime account gets `dataViewer` on the dataset through SQL
+  `GRANT`, the IAM binding command being allowlisted. (Today the export lives in Vinarium's
+  project: moving it is a migration of this package.)
 - Analytics: the Firebase project is linked to a GA4 property at creation, or sessions go
   nowhere; the property id is a repository variable.
 - Never a warm instance, see [11-ops.md](11-ops.md#scale-to-zero).
