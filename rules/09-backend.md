@@ -6,11 +6,17 @@ native Firestore, Zod and branded types. Long form in the `domain` and `graphql`
 ## Architecture
 
 One folder per domain under `server/domain/{domain}/`: `types.ts`, `primitives.ts`,
-`command.ts` (`XxxCommand` namespace), `query.ts` (`XxxQuery` namespace), optional
+`command.ts`, `query.ts`, optional
 `business-rules.ts` (pure functions, full test coverage) and `use-case.ts` (orchestration across
 domains, no business logic of its own), and `infrastructure/{repository.ts, graphql/}`.
 
 - Commands change state, queries change nothing.
+- `command.ts` and `query.ts` export bare functions, and the caller imports the module under
+  the domain's name: `import * as BookCommand from '~/domain/book/command'`, then
+  `BookCommand.rate(...)`. The prefix lives at the import site, so `BookCommand.rate` and
+  `SeriesCommand.rate` never clash and no TypeScript `namespace` block is needed (an older
+  construct the linter flags). Existing projects that use `namespace` move over through a
+  migration of this package.
 - The repository is bare exported functions (`import * as repository`), private to its domain. A
   domain that needs another goes through that domain's `Query` or `Command`, never its storage.
 - A function's name carries the business concept, never the technical pattern: `versionToOpen`,
