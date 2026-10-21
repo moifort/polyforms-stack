@@ -1,6 +1,7 @@
 ---
 id: stack-upgrade
 scope: machine
+runtime: cloud
 cadence: "0 7 * * *"
 title: Upgrades (daily, after Renovate)
 ---

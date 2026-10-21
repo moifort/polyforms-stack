@@ -1,6 +1,7 @@
 ---
 id: sentry-autofix
 scope: machine
+runtime: cloud
 cadence: "0 */6 * * *"
 title: Sentry autofix (every 6 hours)
 ---

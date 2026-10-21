@@ -1,6 +1,7 @@
 ---
 id: daily-health
 scope: project
+runtime: cloud
 cadence: "0 12 * * *"
 title: "{{APP_NAME}} health (daily at noon)"
 ---
@@ -66,6 +67,10 @@ terraform from the machine, never run migrations by hand.
 Only propose, never apply: anything that changes what users see or can do, any infrastructure,
 Terraform or secret change, anything with an unclear cause, and anything that would raise paid API
 calls (state its cost).
+
+## 4b. The other routines
+List the last run of every other routine of this account (Sentry triage, upgrades,
+deprecations). One that missed two cadences is a finding at the top of the report.
 
 ## 5. Report (short)
 One-line verdict first (all fine / fixed / action needed from you). Then Costs (yesterday's total

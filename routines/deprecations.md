@@ -1,6 +1,7 @@
 ---
 id: deprecations
 scope: project
+runtime: cloud
 cadence: "0 9 1 * *"
 title: "{{APP_NAME}} deprecations (monthly)"
 ---
