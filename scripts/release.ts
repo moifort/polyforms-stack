@@ -40,5 +40,6 @@ await Bun.write('package.json', `${JSON.stringify(pkg, null, 2)}\n`)
 await $`bun run preflight`
 await $`git add package.json CHANGELOG.md`
 await $`git commit -m ${`chore(release): ${version}\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`}`.nothrow()
-await $`git tag -a ${`v${version}`} -m ${`@moifort/stack ${version}\n\n${section}`}`
+// verbatim: the default cleanup strips the section's `###` headings as comment lines.
+await $`git tag -a --cleanup=verbatim ${`v${version}`} -m ${`@moifort/stack ${version}\n\n${section}`}`
 console.log(`tagged v${version}; push it with: git push origin main v${version}`)
