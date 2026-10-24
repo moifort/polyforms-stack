@@ -1,8 +1,9 @@
 #!/usr/bin/env bun
 /**
- * Generates the app's GraphQL types from the committed schema, with the CLI the
- * resolved apollo-ios package ships (never a global install: its version must
- * match the library's). Resolves the packages first when they are not there.
+ * Generates the app's GraphQL types from the committed schema, exported first on a
+ * fresh project that has none yet, with the CLI the resolved apollo-ios package ships
+ * (never a global install: its version must match the library's). Resolves the
+ * packages first when they are not there.
  *
  *   bun scripts/apollo-codegen.ts
  */
@@ -17,6 +18,10 @@ const cliDir = join(derived, 'SourcePackages/checkouts/apollo-ios/CLI')
 const env = { ...process.env, DEVELOPER_DIR: '/Applications/Xcode.app/Contents/Developer' }
 const generate = () => $`${join(cliDir, 'apollo-ios-cli')} generate`.cwd(join(root, 'ios')).env(env)
 
+// A fresh project has no schema yet: the backend exports it.
+if (!existsSync(join(root, 'shared/schema.graphql'))) {
+  await $`bun run generate:graphql`.cwd(root)
+}
 if (!existsSync(join(cliDir, 'apollo-ios-cli.tar.gz'))) {
   await $`xcodebuild -resolvePackageDependencies -project ios/${app}.xcodeproj -scheme ${app} -derivedDataPath ${derived}`
     .cwd(root)

@@ -9,6 +9,7 @@ backend in TypeScript, a SwiftUI app, Terraform, GitHub Actions, Sentry.
 1. `mkdir <app> && cd <app> && git init`
 2. `bunx @moifort/stack init --stacks backend,ios`
 3. `bun install && bun run preflight`
+4. With the ios stack: `bun run ios:build` (it exports the GraphQL schema the first time)
 
 ## Keep an app up to date
 
