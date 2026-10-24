@@ -23,12 +23,11 @@ import { tmpdir } from 'node:os'
 import { basename, dirname, join } from 'node:path'
 import { $, Glob } from 'bun'
 
+const app = '{{APP_NAME}}'
 const ios = join(import.meta.dir, '../ios')
 
 /** Each catalogue, and the build products its strings come from. */
-const CATALOGUES = [
-  { path: join(ios, '{{APP_NAME}}/Localizable.xcstrings'), product: '{{APP_NAME}}.build' },
-]
+const CATALOGUES = [{ path: join(ios, `${app}/Localizable.xcstrings`), product: `${app}.build` }]
 
 type Unit = { stringUnit?: { state: string; value: string }; variations?: unknown }
 type Entry = {
