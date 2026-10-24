@@ -11,6 +11,25 @@ upgrades to it:
 The upgrade routine reads the **Upgrade** part first, and the release tag carries the whole
 section as its message.
 
+## 0.1.2 (2026.10.24)
+
+### Fixed
+- `bunx @moifort/stack` runs again. The CLI resolved its modules through a path alias only the
+  repository's `tsconfig.json` declares, and npm does not ship that file, so every command of
+  0.1.1 failed with "Cannot find module '~/config'". A test now runs the CLI from the packed
+  package.
+- A project generated with the ios stack passes `bun run lint` right after `init`, whatever the
+  app is called: `scripts/apollo-codegen.ts` and `scripts/check-strings.ts` no longer spell the
+  name inline.
+- `bun run ios:build` succeeds on a fresh project: `scripts/apollo-codegen.ts` exports
+  `shared/schema.graphql` when it is missing instead of failing on a schema it cannot find.
+- The release tag and the GitHub release keep their `### New`, `### Fixed`, `### Upgrade`
+  headings: git dropped them as comment lines when it wrote the tag message.
+
+### Upgrade
+- Nothing to do. A project generated with 0.1.1 got past these steps with `bun run lint:fix`
+  and `bun run generate`, and its committed schema keeps its iOS build working.
+
 ## 0.1.1 (2026.10.21)
 
 ### Fixed
