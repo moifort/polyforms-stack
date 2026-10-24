@@ -1,4 +1,4 @@
-import type { Stack } from '~/config'
+import type { Stack } from './config'
 
 /** Which stacks a shipped file needs; absent means it always applies. */
 export const RULE_STACKS: Record<string, Stack[]> = {

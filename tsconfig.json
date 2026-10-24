@@ -6,10 +6,7 @@
     "strict": true,
     "noEmit": true,
     "skipLibCheck": true,
-    "types": ["bun-types"],
-    "paths": {
-      "~/*": ["./src/*"]
-    }
+    "types": ["bun-types"]
   },
   "include": ["bin", "src", "scripts"]
 }

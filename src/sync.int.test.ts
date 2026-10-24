@@ -2,9 +2,9 @@ import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { mkdtemp, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { requiredPlaceholders } from '~/init'
-import { packageDir } from '~/package'
-import { applyPlan, checkPlan, planSync, withHooks, withRulesBlock } from '~/sync'
+import { requiredPlaceholders } from './init'
+import { packageDir } from './package'
+import { applyPlan, checkPlan, planSync, withHooks, withRulesBlock } from './sync'
 
 let project: string
 beforeEach(async () => {
@@ -82,7 +82,7 @@ describe('sync', () => {
 
 describe('templates', () => {
   test('the base template gives the project its .gitignore', async () => {
-    const { planTemplates } = await import('~/templates')
+    const { planTemplates } = await import('./templates')
     const files = await planTemplates(
       packageDir(),
       { stacks: ['backend'], placeholders: await values(['backend']), exclude: [] },

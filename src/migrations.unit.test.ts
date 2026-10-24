@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test'
-import { type Migration, migrationsBetween, parseFrontmatter } from '~/migrations'
+import { type Migration, migrationsBetween, parseFrontmatter } from './migrations'
 
 const m = (version: string, id: string, stacks: Migration['stacks'] = ['any']): Migration => ({
   id,

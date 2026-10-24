@@ -1,9 +1,9 @@
 import { readdir } from 'node:fs/promises'
 import { basename, dirname } from 'node:path'
-import { applies, ROUTINE_STACKS, RULE_STACKS } from '~/catalogue'
-import { CONFIG_FILE, type Stack, StackConfig } from '~/config'
-import { placeholdersIn } from '~/render'
-import { templatePlaceholders } from '~/templates'
+import { applies, ROUTINE_STACKS, RULE_STACKS } from './catalogue'
+import { CONFIG_FILE, type Stack, StackConfig } from './config'
+import { placeholdersIn } from './render'
+import { templatePlaceholders } from './templates'
 
 /** Every placeholder the selected rules and routines use, so init can ask for exactly those. */
 export const requiredPlaceholders = async (

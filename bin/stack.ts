@@ -1,10 +1,10 @@
 #!/usr/bin/env bun
 import { parseArgs } from 'node:util'
-import { readConfig, STACKS, type Stack } from '~/config'
-import { defaultPlaceholders, requiredPlaceholders, writeConfig } from '~/init'
-import { migrationsBetween, readMigrations } from '~/migrations'
-import { packageDir, packageVersion } from '~/package'
-import { applyPlan, applyTemplates, checkPlan, planSync } from '~/sync'
+import { readConfig, STACKS, type Stack } from '../src/config'
+import { defaultPlaceholders, requiredPlaceholders, writeConfig } from '../src/init'
+import { migrationsBetween, readMigrations } from '../src/migrations'
+import { packageDir, packageVersion } from '../src/package'
+import { applyPlan, applyTemplates, checkPlan, planSync } from '../src/sync'
 
 const usage = `stack <command>
 

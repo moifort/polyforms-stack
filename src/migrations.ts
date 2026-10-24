@@ -1,9 +1,9 @@
 import { readdir } from 'node:fs/promises'
 import semver from 'semver'
 import { z } from 'zod'
-import { applies } from '~/catalogue'
-import type { Stack } from '~/config'
-import { STACKS } from '~/config'
+import { applies } from './catalogue'
+import type { Stack } from './config'
+import { STACKS } from './config'
 
 export const Migration = z.object({
   id: z.string().regex(/^[a-z0-9-]+$/),

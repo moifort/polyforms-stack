@@ -1,7 +1,7 @@
 import { readdir } from 'node:fs/promises'
 import { extname, join, relative } from 'node:path'
-import type { Stack, StackConfig } from '~/config'
-import { placeholdersIn, render } from '~/render'
+import type { Stack, StackConfig } from './config'
+import { placeholdersIn, render } from './render'
 
 /** The folders of templates/ that a project with these stacks receives, in order:
  *  base first, then one per selected stack. A later folder may add files or

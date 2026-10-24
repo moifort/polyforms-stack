@@ -1,9 +1,9 @@
 import { chmod, mkdir, readdir, rm } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
-import { applies, HOOK_STACKS, ROUTINE_STACKS, RULE_STACKS, SKILL_STACKS } from '~/catalogue'
-import type { StackConfig } from '~/config'
-import { render } from '~/render'
-import { planTemplates } from '~/templates'
+import { applies, HOOK_STACKS, ROUTINE_STACKS, RULE_STACKS, SKILL_STACKS } from './catalogue'
+import type { StackConfig } from './config'
+import { render } from './render'
+import { planTemplates } from './templates'
 
 export type Plan = {
   /** Files to write in the project, path relative to the project root, with their content. */

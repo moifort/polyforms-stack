@@ -4,8 +4,8 @@
  * to one project (the denylist lives outside the published files).
  */
 import { readdir } from 'node:fs/promises'
-import { parseFrontmatter, readMigrations } from '~/migrations'
-import { packageDir } from '~/package'
+import { parseFrontmatter, readMigrations } from './migrations'
+import { packageDir } from './package'
 
 const root = packageDir()
 const problems: string[] = []

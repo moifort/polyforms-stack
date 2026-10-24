@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test'
-import { placeholdersIn, render } from '~/render'
+import { placeholdersIn, render } from './render'
 
 describe('render', () => {
   test('replaces every placeholder, each as many times as it appears', () => {
