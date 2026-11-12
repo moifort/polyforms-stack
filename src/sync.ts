@@ -127,6 +127,8 @@ export const applyPlan = async (projectDir: string, plan: Plan): Promise<void> =
     const target = join(projectDir, path)
     await mkdir(dirname(target), { recursive: true })
     await Bun.write(target, content)
+    // A hook is run as a command: without the bit, every matching tool call fails.
+    if (path.startsWith('.claude/hooks/')) await chmod(target, 0o755)
   }
   const claudePath = join(projectDir, 'CLAUDE.md')
   const claudeFile = Bun.file(claudePath)

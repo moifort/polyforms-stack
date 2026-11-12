@@ -29,7 +29,21 @@ Then, in order, verifying each:
 
 ## Existing project
 
-`init` never overwrites: it writes what is missing and lists what it kept. Then write a
-batched plan, one batch per domain (CI, Terraform, Sentry, iOS shell, scripts), comparing each
-kept file with its template and bringing the project in line batch by batch, each batch
-verified and committed on its own.
+Never `init` in an existing app: it writes every template file the project lacks, which adds a
+second app skeleton (`App.swift`, a home, settings) beside the real one. Instead:
+
+1. `bunx stack placeholders --stacks <stacks>` lists the values the stacks need; write
+   `stack.config.json` by hand (`stacks`, `placeholders` read from the project: bundle id, team,
+   App Store id, server URL, languages, billing table; `exclude: []`).
+2. `bun add -d @moifort/stack@<version>`, then `bunx stack sync`: rules into `stack/`, the
+   rules block at the top of `CLAUDE.md`, skills and hooks into `.claude/`.
+3. `.gitignore` keeps `.claude/skills/`, `.claude/hooks/` and `.claude/settings.json` tracked
+   (`.claude/*` then the three `!` lines), so every session and every clone has them.
+4. Replace the project's own copy of the method (a `playbook/`, long sections of `CLAUDE.md`)
+   with the stack: delete it, point its links at `stack/rules/`, keep in `CLAUDE.md` only what is
+   specific to the project, and move a rule found there and missing from the stack into this
+   package first.
+5. Apply the migrations of every version up to the installed one (`bunx stack migrations 0.0.0
+   <version>`), then write a batched plan, one batch per domain (CI, Terraform, Sentry, iOS
+   shell, scripts), comparing each file with its template (`templates/` in the package) and
+   bringing the project in line batch by batch, each batch verified and committed on its own.

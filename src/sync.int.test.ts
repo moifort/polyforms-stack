@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
-import { mkdtemp, rm } from 'node:fs/promises'
+import { mkdtemp, rm, stat } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { requiredPlaceholders } from './init'
@@ -59,6 +59,8 @@ describe('sync', () => {
     expect(JSON.stringify(settings.hooks.PostToolUse)).toContain(
       'shutdown-simulators-after-push.sh',
     )
+    const hook = await stat(join(project, '.claude/hooks/shutdown-simulators-after-push.sh'))
+    expect(hook.mode & 0o111).not.toBe(0)
 
     await Bun.write(join(project, 'stack/rules/00-collaboration.md'), 'edited by hand\n')
     await Bun.write(join(project, 'CLAUDE.md'), '# P\n')

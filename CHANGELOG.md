@@ -11,6 +11,20 @@ upgrades to it:
 The upgrade routine reads the **Upgrade** part first, and the release tag carries the whole
 section as its message.
 
+## 0.2.1 (2026.11.12)
+
+### Fixed
+- `sync` writes the hooks executable. They were written without the execute bit, so the
+  `PostToolUse` hook it registers failed on every Bash call of a session.
+- The `stack-install` skill no longer runs `init` in an existing app, which added the template's
+  app skeleton beside the real one: it writes `stack.config.json`, syncs, keeps `.claude/skills`,
+  `.claude/hooks` and `.claude/settings.json` tracked, replaces the project's own copy of the
+  method, then applies the migrations batch by batch.
+
+### Upgrade
+- `bunx stack sync`: it sets the execute bit on `.claude/hooks/*.sh`. Commit `.claude/hooks/`
+  if the project tracks it.
+
 ## 0.2.0 (2026.11.12)
 
 Harvested from Shiori, three weeks after 0.1.
