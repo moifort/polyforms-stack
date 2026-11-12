@@ -22,18 +22,38 @@ permissions:
   contents: read
   id-token: write   # required for Workload Identity Federation
 
-# The Terraform state takes a lock, so two applies at once do not interleave.
-# Queue the runs instead of racing them, and never cancel one mid-apply.
-concurrency:
-  group: deploy-${{ github.event_name == 'pull_request' && 'staging' || 'production' }}
-  cancel-in-progress: false
-
 jobs:
+  # Nothing is deployed on red backend tests: Deploy calls the three test
+  # workflows and waits for them (on main they no longer run on their own). A
+  # push that follows cancels these runs, which skips this deploy: the newer one
+  # ships both.
+  unit:
+    if: github.event_name != 'pull_request'
+    uses: ./.github/workflows/test-unit.yml
+  int:
+    if: github.event_name != 'pull_request'
+    uses: ./.github/workflows/test-int.yml
+  feat:
+    if: github.event_name != 'pull_request'
+    uses: ./.github/workflows/test-feat.yml
+
   deploy:
     name: 🚀 Backend (${{ github.event_name == 'pull_request' && 'staging' || 'production' }})
-    if: github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'staging')
+    needs: [unit, int, feat]
+    # A pull request runs its tests through their own pull_request trigger; its
+    # staging deploy does not wait on them.
+    if: >-
+      always() && !contains(needs.*.result, 'failure') && !contains(needs.*.result, 'cancelled') &&
+      (github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'staging'))
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    # The Terraform state takes a lock, so two applies at once do not interleave.
+    # Queue the applies instead of racing them, and never cancel one mid-apply.
+    # On the job, not the workflow, so a run's tests start at once and only the
+    # applies wait for one another.
+    concurrency:
+      group: deploy-${{ github.event_name == 'pull_request' && 'staging' || 'production' }}
+      cancel-in-progress: false
     env:
       # One workspace per environment: the staging project is the same Terraform
       # with its own state prefix and variables.
