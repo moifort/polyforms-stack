@@ -15,8 +15,8 @@ domains, no business logic of its own), and `infrastructure/{repository.ts, grap
   the domain's name: `import * as BookCommand from '~/domain/book/command'`, then
   `BookCommand.rate(...)`. The prefix lives at the import site, so `BookCommand.rate` and
   `SeriesCommand.rate` never clash and no TypeScript `namespace` block is needed (an older
-  construct the linter flags). Existing projects that use `namespace` move over through a
-  migration of this package.
+  construct the linter flags). Existing projects that use `namespace` move over through the
+  `namespace-to-module-imports` migration of this package.
 - The repository is bare exported functions (`import * as repository`), private to its domain. A
   domain that needs another goes through that domain's `Query` or `Command`, never its storage.
 - A function's name carries the business concept, never the technical pattern: `versionToOpen`,

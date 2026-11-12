@@ -44,7 +44,13 @@ An audit of the package against itself: what the rules say and what the package 
 - Renovate runs with the `RENOVATE_TOKEN` repository secret, as its workflow always did;
   `14-infra` described a GitHub App.
 
+- Rule `09-backend` promised a migration from `export namespace` blocks to modules imported
+  with `import * as`, and none existed: it ships now.
+
 ### Upgrade
+- `namespace-to-module-imports` (review, backend): every `export namespace Name { … }` becomes
+  bare exports, every importer `import * as Name`, test mocks and dynamic imports included,
+  one domain per commit; then Biome's `noNamespace` is turned on.
 - `bunx stack sync`, then update the `stack-upgrade` scheduled task from
   `stack/routines/stack-upgrade.md`.
 - Machine: `daily-health` runs as a desktop scheduled task; a cloud task created for it is
