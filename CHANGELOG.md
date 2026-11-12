@@ -11,6 +11,41 @@ upgrades to it:
 The upgrade routine reads the **Upgrade** part first, and the release tag carries the whole
 section as its message.
 
+## 0.3.2 (2026.11.12)
+
+An audit of the package against itself: what the rules say and what the package ships.
+
+### Changed
+- `bun run validate`, in the package's CI, now refuses what a re-read used to catch late: a link
+  or an anchor that does not resolve, a `bun run <script>` no template has, a `stack <command>`
+  the CLI lacks (unless the file says "Not shipped yet"), a migration absent from its version's
+  section here, sections out of order, a catalogue entry without its file, and a project name in
+  anything a project receives, hooks and templates included.
+
+### Fixed
+- Routine `stack-upgrade` takes the major dependency pull requests: it listed only the `stack`
+  label, so the `major` ones were never found. It works in the task's cloned repositories, as a
+  cloud routine does, no longer under the machine's code folder and `/tmp`.
+- Rules that described what is not built now say so, with what is done meanwhile: `bootstrap`,
+  `teardown` and `infra/org/` (`14-infra`, the `stack-install` skill), the `PolyformsUI` Swift
+  package (`10-ios`, which now lists the components the template really seeds), the `pages`
+  workflow and `storage.tf` (`12-ci`, `14-infra`), the Android app and its workflows
+  (`19-android`).
+- Rules that contradicted the templates: the build number is the commit count, not the run
+  number (`05-release`, `12-ci`); the iOS unit tests run in `build-ios` before a release, not on
+  every push (`10-ios`); `sync` renders the routines into `stack/routines/` (`16-routines`); no
+  derived data under `/tmp` to delete after a push (`04-push`); template paths (`12-ci`,
+  `14-infra`); `ios-upload` in the workflows table.
+- No project name left in the rules, the migrations and the templates; the push hook's comment
+  and message are in English; the `stack-install` skill lists the `android` stack and says
+  `init` stops on a missing placeholder instead of asking.
+
+### Upgrade
+- `bunx stack sync`, then update the `stack-upgrade` scheduled task from
+  `stack/routines/stack-upgrade.md`.
+- `.github/workflows/renovate.yml` and `nitro.config.ts` changed in a comment only: nothing to
+  copy.
+
 ## 0.3.1 (2026.11.12)
 
 Security fixes merged by Renovate.
@@ -32,20 +67,6 @@ Security fixes merged by Renovate.
   `"vulnerabilityAlerts": { "labels": ["dependencies", "security"] }`.
 - Check that Renovate's token reads the alerts: a classic token with `repo`, a fine-grained
   token or a GitHub App with **Dependabot alerts: read**.
-
-## 0.2.1 (2026.11.12)
-
-### Fixed
-- `sync` writes the hooks executable. They were written without the execute bit, so the
-  `PostToolUse` hook it registers failed on every Bash call of a session.
-- The `stack-install` skill no longer runs `init` in an existing app, which added the template's
-  app skeleton beside the real one: it writes `stack.config.json`, syncs, keeps `.claude/skills`,
-  `.claude/hooks` and `.claude/settings.json` tracked, replaces the project's own copy of the
-  method, then applies the migrations batch by batch.
-
-### Upgrade
-- `bunx stack sync`: it sets the execute bit on `.claude/hooks/*.sh`. Commit `.claude/hooks/`
-  if the project tracks it.
 
 ## 0.3.0 (2026.11.12)
 
@@ -69,6 +90,20 @@ when the operation log shows one above about a hundred reads or a second at p50.
 `server/test/fake-firestore.ts` diverged from the template adds `select` by hand (the
 `FakeQuery` and `FakeCollection` types, the `fields` of the query state, and the projection of
 `data()` in `get`).
+
+## 0.2.1 (2026.11.12)
+
+### Fixed
+- `sync` writes the hooks executable. They were written without the execute bit, so the
+  `PostToolUse` hook it registers failed on every Bash call of a session.
+- The `stack-install` skill no longer runs `init` in an existing app, which added the template's
+  app skeleton beside the real one: it writes `stack.config.json`, syncs, keeps `.claude/skills`,
+  `.claude/hooks` and `.claude/settings.json` tracked, replaces the project's own copy of the
+  method, then applies the migrations batch by batch.
+
+### Upgrade
+- `bunx stack sync`: it sets the execute bit on `.claude/hooks/*.sh`. Commit `.claude/hooks/`
+  if the project tracks it.
 
 ## 0.2.0 (2026.11.12)
 

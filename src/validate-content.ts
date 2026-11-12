@@ -1,14 +1,28 @@
 /**
- * Content validation, run in the package's CI: every migration and routine parses, no safe
- * migration without a check, no em or en dash in what is shipped, no identifier that belongs
- * to one project (the denylist lives outside the published files).
+ * Content validation, run in the package's CI. What the prose claims must exist:
+ *
+ * - every migration and routine parses, no safe migration without a check, and every
+ *   migration is listed in its version's section of CHANGELOG.md, newest version first;
+ * - no em or en dash in the rules, routines, skills and migrations;
+ * - no identifier or name that belongs to one project, in anything a project receives
+ *   (the denylist lives outside the published files);
+ * - every relative link and anchor resolves;
+ * - every `bun run <script>` named exists in a template's package.json;
+ * - every `stack <command>` named is a command of the CLI, unless the file says the
+ *   command is not shipped yet;
+ * - every file the catalogue ties to a stack exists.
  */
 import { readdir } from 'node:fs/promises'
+import { dirname, resolve } from 'node:path'
+import semver from 'semver'
+import { HOOK_STACKS, ROUTINE_STACKS, RULE_STACKS, SKILL_STACKS } from './catalogue'
 import { parseFrontmatter, readMigrations } from './migrations'
 import { packageDir } from './package'
+import { isText } from './templates'
 
 const root = packageDir()
 const problems: string[] = []
+const relative = (path: string) => path.slice(root.length + 1)
 
 const walk = async (dir: string): Promise<string[]> => {
   const out: string[] = []
@@ -26,35 +40,121 @@ const denylist = (
     .catch(() => '')
 )
   .split('\n')
-  .map((l) => l.trim())
+  .map((l) => l.trim().toLowerCase())
   .filter((l) => l && !l.startsWith('#'))
 
+/** The prose Claude reads in a project: the claims checked below are made there. */
+const prose: { path: string; text: string }[] = []
 for (const dir of ['rules', 'routines', 'skills', 'migrations']) {
   for (const path of await walk(`${root}/${dir}`)) {
-    if (!path.endsWith('.md')) continue
-    const text = await Bun.file(path).text()
-    const rel = path.slice(root.length + 1)
-    if (/[—–]/.test(text)) problems.push(`${rel}: em or en dash`)
-    for (const word of denylist) if (text.includes(word)) problems.push(`${rel}: contains ${word}`)
+    if (path.endsWith('.md')) prose.push({ path, text: await Bun.file(path).text() })
+  }
+}
+
+for (const { path, text } of prose) {
+  if (/[—–]/.test(text)) problems.push(`${relative(path)}: em or en dash`)
+}
+
+// Everything a project receives, templates and hooks included, names no single project.
+for (const dir of ['rules', 'routines', 'skills', 'migrations', 'hooks', 'templates']) {
+  for (const path of await walk(`${root}/${dir}`)) {
+    if (!isText(path)) continue
+    const text = (await Bun.file(path).text()).toLowerCase()
+    for (const word of denylist)
+      if (text.includes(word)) problems.push(`${relative(path)}: contains ${word}`)
   }
 }
 
 for (const path of await walk(`${root}/routines`)) {
   const { data } = parseFrontmatter(await Bun.file(path).text())
   for (const key of ['id', 'scope', 'runtime', 'cadence', 'title']) {
-    if (!data[key]) problems.push(`${path.slice(root.length + 1)}: frontmatter lacks ${key}`)
+    if (!data[key]) problems.push(`${relative(path)}: frontmatter lacks ${key}`)
   }
 }
 
+/** A heading's anchor, as GitHub derives it. */
+const anchorOf = (heading: string): string =>
+  heading
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}\s_-]/gu, '')
+    .trim()
+    .replace(/\s/g, '-')
+
+const anchorsIn = (text: string): string[] =>
+  [...text.matchAll(/^#{1,6}\s+(.+)$/gm)].map((m) => anchorOf(m[1] as string))
+
+for (const { path, text } of prose) {
+  for (const match of text.matchAll(/\]\(([^)\s]+)\)/g)) {
+    const link = match[1] as string
+    if (/^[a-z]+:/.test(link)) continue
+    const [file, anchor] = link.split('#')
+    const target = file ? resolve(dirname(path), file) : path
+    const targetText = await Bun.file(target)
+      .text()
+      .catch(() => undefined)
+    if (targetText === undefined) problems.push(`${relative(path)}: link to missing ${link}`)
+    else if (anchor && !anchorsIn(targetText).includes(anchor))
+      problems.push(`${relative(path)}: no heading for ${link}`)
+  }
+}
+
+const scripts = new Set<string>()
+for (const path of await walk(`${root}/templates`)) {
+  if (!/\/package(\.merge)?\.json$/.test(path)) continue
+  const { scripts: found } = (await Bun.file(path).json()) as { scripts?: Record<string, string> }
+  for (const name of Object.keys(found ?? {})) scripts.add(name)
+}
+const commands = new Set(
+  [...(await Bun.file(`${root}/bin/stack.ts`).text()).matchAll(/case '([a-z]+)':/g)].map(
+    (m) => m[1] as string,
+  ),
+)
+for (const { path, text } of prose) {
+  for (const match of text.matchAll(/bun run ([a-z][a-z0-9:-]*)/g)) {
+    const script = (match[1] as string).replace(/[:-]$/, '')
+    if (!scripts.has(script))
+      problems.push(`${relative(path)}: \`bun run ${script}\` is in no template's package.json`)
+  }
+  const planned = /not shipped yet/i.test(text)
+  for (const match of text.matchAll(/bunx (?:@moifort\/)?stack ([a-z]+)/g)) {
+    const command = match[1] as string
+    if (!commands.has(command) && !planned)
+      problems.push(`${relative(path)}: \`stack ${command}\` is not a command of the CLI`)
+  }
+}
+
+for (const [dir, catalogue] of [
+  ['rules', RULE_STACKS],
+  ['routines', ROUTINE_STACKS],
+  ['skills', SKILL_STACKS],
+  ['hooks', HOOK_STACKS],
+] as const) {
+  const present = new Set(await readdir(`${root}/${dir}`).catch(() => []))
+  for (const name of Object.keys(catalogue))
+    if (!present.has(name)) problems.push(`src/catalogue.ts: ${dir}/${name} does not exist`)
+}
+
 try {
+  const changelog = await Bun.file(`${root}/CHANGELOG.md`).text()
+  const versions = [...changelog.matchAll(/^## (\d+\.\d+\.\d+) /gm)].map((m) => m[1] as string)
+  versions.forEach((version, index) => {
+    const older = versions[index + 1]
+    if (older && !semver.gt(version, older))
+      problems.push(`CHANGELOG.md: ${version} sits above ${older}, newest first`)
+  })
   for (const m of await readMigrations(root)) {
     const [file, anchor] = m.rule.split('#')
     const ruleText = await Bun.file(`${root}/${file}`)
       .text()
       .catch(() => '')
-    if (!ruleText) problems.push(`${m.path}: rule file ${file} not found`)
-    else if (anchor && !ruleText.toLowerCase().includes(`## ${anchor.replace(/-/g, ' ')}`))
-      problems.push(`${m.path}: heading ${anchor} not found in ${file}`)
+    if (!ruleText) problems.push(`${relative(m.path)}: rule file ${file} not found`)
+    else if (anchor && !anchorsIn(ruleText).includes(anchor))
+      problems.push(`${relative(m.path)}: heading ${anchor} not found in ${file}`)
+    const start = changelog.indexOf(`\n## ${m.version} `)
+    const end = changelog.indexOf('\n## ', start + 1)
+    const section = start < 0 ? '' : changelog.slice(start, end < 0 ? undefined : end)
+    if (!section.includes(`\`${m.id}\``))
+      problems.push(`${relative(m.path)}: not listed in the ${m.version} section of CHANGELOG.md`)
   }
 } catch (error) {
   problems.push(String(error))

@@ -31,5 +31,10 @@ must do, each migration with its risk, or "nothing to do"). Only the parts with 
 
 - A template changed: generate a scratch project with the stacks it touches, and run its
   preflight (and `bun run ios:build`, `ios:test`, `ios:strings`, `ios:components` for iOS).
-- `.denylist` stays outside the published files; no project identifier in `rules/`,
-  `routines/`, `skills/`, `migrations/`.
+- `.denylist` stays outside the published files; no project name or identifier in what a
+  project receives (`rules/`, `routines/`, `skills/`, `migrations/`, `hooks/`, `templates/`).
+- A rule states what exists. `bun run validate` refuses a link or anchor that does not resolve,
+  a `bun run <script>` no template has, a `stack <command>` the CLI lacks, a migration absent
+  from its version's changelog section, a catalogue entry without its file. Something planned
+  and not built says "Not shipped yet" where it is described. A new kind of claim a rule can
+  get wrong is a new check in `src/validate-content.ts`, not a re-read.
