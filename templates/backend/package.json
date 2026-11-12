@@ -13,7 +13,7 @@
     "test:coverage": "bun run generate:assets && bun test --coverage",
     "lint": "bunx biome check",
     "lint:fix": "bunx biome check --write",
-    "preflight": "bun run typecheck && bun run lint && bun run test:unit && bun run test:int && bun run test:feat",
+    "preflight": "bun run typecheck && bun run lint && bun run test:unit && bun run test:int && bun run test:feat && bun run stack:check",
     "generate:assets": "bun scripts/generate-changelog-asset.ts",
     "generate:graphql": "bun scripts/export-graphql-schema.ts",
     "generate": "bun run generate:assets && bun run generate:graphql",

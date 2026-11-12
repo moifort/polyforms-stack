@@ -11,6 +11,21 @@ upgrades to it:
 The upgrade routine reads the **Upgrade** part first, and the release tag carries the whole
 section as its message.
 
+## 0.4.0 (2026.11.12)
+
+Guardrails: what the package installs, and what its templates generate, are checked by CI.
+
+### New
+- Template `test-unit` workflow and `preflight` script: `bunx stack check` runs after Biome and
+  at the end of the preflight (rule `12-ci`, **Stack checks**). A file under `stack/`, the rules
+  block of `CLAUDE.md`, a skill or a hook edited by hand, or not synced, fails. Intended effect:
+  the Renovate pull request that bumps `@moifort/stack` is red until the upgrade routine has run
+  `sync` on its branch, so a bump is never merged unsynced.
+
+### Upgrade
+- `stack-check-in-ci` (safe): `stack:check` at the end of `preflight`, and `bunx stack check` in
+  the `unit` job of `test-unit.yml`, after Biome.
+
 ## 0.3.2 (2026.11.12)
 
 An audit of the package against itself: what the rules say and what the package ships.
