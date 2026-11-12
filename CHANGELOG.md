@@ -25,6 +25,29 @@ section as its message.
 - `bunx stack sync`: it sets the execute bit on `.claude/hooks/*.sh`. Commit `.claude/hooks/`
   if the project tracks it.
 
+## 0.3.0 (2026.11.12)
+
+Harvested from Shiori: reading a slow screen, and keeping it fast.
+
+### New
+- Rule `09-backend`, **Read models**: a screen drawn from a whole library and its shared
+  documents is kept as one document per reader, gzipped, with its freshness fields; a per-reader
+  stamp, written by a GraphQL plugin after every mutation and by the scheduled writers, says when
+  it went stale; the hourly route rewrites the stale ones of active readers.
+- Rule `09-backend`, **Observability**: the `operation served` line the GraphQL plugin already
+  logs for each operation (duration and Firestore reads), and how to rank operations with it
+  before reading code.
+- Routine `daily-health`: ranks GraphQL operations by latency and reads, and checks that the
+  passes keeping shared documents fresh actually refresh them, not only that they answer 200.
+- Template `server/test/fake-firestore.ts`: `select` on a query, returning only the fields named.
+
+### Upgrade
+Run `bunx stack sync`. Nothing else to do: the read model is a pattern applied screen by screen,
+when the operation log shows one above about a hundred reads or a second at p50. A project whose
+`server/test/fake-firestore.ts` diverged from the template adds `select` by hand (the
+`FakeQuery` and `FakeCollection` types, the `fields` of the query state, and the projection of
+`data()` in `get`).
+
 ## 0.2.0 (2026.11.12)
 
 Harvested from Shiori, three weeks after 0.1.
