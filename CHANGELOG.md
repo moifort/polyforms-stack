@@ -11,6 +11,55 @@ upgrades to it:
 The upgrade routine reads the **Upgrade** part first, and the release tag carries the whole
 section as its message.
 
+## 0.2.0 (2026.11.12)
+
+Harvested from Shiori, three weeks after 0.1.
+
+### New
+- Rule `18-design`: the design board kept in sync with the app, the prototyping zone, variants,
+  one child session per board comment (resolved once handled, validated in the child), mockups
+  (scroll to the change, working variant on top, change only what is asked, 512 KB), concept
+  icons picked from numbered library boards.
+- Rule `19-android` and the `android` stack: the Android app mirrors iOS file by file and
+  catches up before every release; one GraphQL contract; strings from the iOS catalogue.
+- A UI change is validated twice, board then app (`01-workflow`); iteration rounds on one piece
+  of UI are one commit (`02-commits`); short labels, no tag for the app's own language
+  (`08-copy`); empty states, blur never darken, no `Menu` in a `GlassEffectContainer`, and a
+  scrolling performance section (`10-ios`); the cold start measured and cut (`11-ops`).
+- Routine `ios-disk-cleanup`: weekly, on the machine.
+- Templates: `server/system/boot-marks.ts`, `server/utils/nightly-pass.ts`,
+  `scripts/stable-mtimes.py`, `memoizedManyPerRequest` in the request cache.
+
+### Changed
+- Deploy calls the three test workflows and waits for them: nothing reaches production on red
+  tests. The test workflows no longer run on their own on `main`.
+- The iOS app builds at release (`release-ios` calls `build-ios` and stops on its failure), no
+  longer on every push; `build-ios` restores warm Swift packages and derived data. Rule `12-ci`
+  drops "one build per commit".
+- The backend bundles its dependencies (Firebase, gRPC, Sentry excepted), talks REST to
+  Firestore, skips Sentry's module loader hook, and serves sixteen requests per instance on 1 GiB.
+- Simulators are booted through the Claude app's simulator tool or Simulator.app, never
+  `simctl boot` alone, and shut down at the first crash; derived data is never a fresh path per
+  build (`15-tooling`, `10-ios`, `01-workflow`).
+- Biome 2.6.6, Markdown and YAML left unformatted; `bun test`, `tsc` and Biome skip `build/`
+  and `.claude/` (the worktrees of parallel sessions).
+- A change to how projects are built goes into this package first, with its Upgrade steps
+  (`00-collaboration`).
+
+### Upgrade
+Run `bunx stack sync`, then each migration, in this order:
+- `local-checks-skip-worktrees` (safe): `bunfig.toml`, `tsconfig.json`, `biome.json`, Biome 2.6.6.
+- `derived-data-reuse` (safe, ios): no `-derivedDataPath` under `/tmp` in the scripts.
+- `deploy-waits-on-tests` (review, backend): `test-*.yml` become `workflow_call`, `deploy.yml`
+  needs them, its concurrency moves onto the job.
+- `ios-build-at-release` (review, ios): `build-ios.yml` replaced, `release-ios.yml` gains
+  `ios-checks`, `scripts/stable-mtimes.py` added.
+- `cold-start` (review, backend): `boot-marks.ts`, the two plugins, `firebase.ts`,
+  `nitro.config.ts`, `infra/function.tf`; build and run the bundle locally before pushing.
+- `request-cache-scopes` (review, backend): `request-cache.ts` and its test, `nightly-pass.ts`,
+  `fake-firestore.ts`.
+- Machine: install the `ios-disk-cleanup` routine (desktop scheduled task, Mondays 10:00).
+
 ## 0.1.2 (2026.10.24)
 
 ### Fixed
