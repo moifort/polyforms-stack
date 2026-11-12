@@ -123,6 +123,14 @@ one pull request automerged when CI is green, weekly lockfile maintenance. Every
 stricter package manager rejects, a framework not yet on the new major). A strict install
 replayed on the build artefact catches what the permissive local install let through.
 
+**Security fixes go through Renovate too.** The repository has Dependabot alerts on and
+Dependabot security updates off: GitHub detects the vulnerable dependency, Renovate opens the
+fix (its `vulnerabilityAlerts`, labelled `security`, outside any schedule, at the lowest fixed
+version) and merges it under the same rules as any other update, so one bot owns every
+dependency pull request. Renovate's token must read the alerts: a classic token with `repo`, a
+fine-grained token or the GitHub App with **Dependabot alerts: read**; without it Renovate
+skips them silently.
+
 **Majors are never automerged.** The upgrade routine ([16-routines.md](16-routines.md)) takes
 every open major pull request each morning: it reads the dependency's changelog and migration
 guide, applies the code changes the new major requires, deploys the branch to the project's

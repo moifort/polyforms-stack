@@ -11,6 +11,28 @@ upgrades to it:
 The upgrade routine reads the **Upgrade** part first, and the release tag carries the whole
 section as its message.
 
+## 0.3.1 (2026.11.12)
+
+Security fixes merged by Renovate.
+
+### New
+- Rule `11-ops`, **Dependencies**: Dependabot alerts on, Dependabot security updates off;
+  Renovate opens and merges the security fixes, and its token must read the alerts.
+- Template `renovate.json`: `vulnerabilityAlerts` labels its pull requests `security`.
+
+### Changed
+- Rule `14-infra`: `infra/org/` turns Dependabot alerts on for the repository.
+
+### Upgrade
+- Turn Dependabot alerts on: `gh api -X PUT repos/<owner>/<repo>/vulnerability-alerts`; then
+  `gh api -i repos/<owner>/<repo>/vulnerability-alerts` answers `204`. Leave Dependabot
+  security updates off: `gh api repos/<owner>/<repo> --jq
+  .security_and_analysis.dependabot_security_updates.status` says `disabled`.
+- In `renovate.json`, before `lockFileMaintenance`, add
+  `"vulnerabilityAlerts": { "labels": ["dependencies", "security"] }`.
+- Check that Renovate's token reads the alerts: a classic token with `repo`, a fine-grained
+  token or a GitHub App with **Dependabot alerts: read**.
+
 ## 0.2.1 (2026.11.12)
 
 ### Fixed

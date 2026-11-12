@@ -41,7 +41,7 @@ kinds of credentials:
 
 | Root | Runs | Credentials | Creates |
 |---|---|---|---|
-| `infra/org/` | From the machine, at bootstrap and when the organisation-level setup changes | The person's organisation tokens, read from the macOS keychain for the duration of the run | The GitHub repository (settings, Pages, labels, branch rules), its secrets and variables, the Sentry projects (`<app>-node`, `<app>-ios`) with their DSNs written straight into the GitHub secrets, the Renovate installation, the GCP project and the state bucket |
+| `infra/org/` | From the machine, at bootstrap and when the organisation-level setup changes | The person's organisation tokens, read from the macOS keychain for the duration of the run | The GitHub repository (settings, Dependabot alerts on and its security updates off, Pages, labels, branch rules), its secrets and variables, the Sentry projects (`<app>-node`, `<app>-ios`) with their DSNs written straight into the GitHub secrets, the Renovate installation, the GCP project and the state bucket |
 | `infra/` | By the Deploy workflow, through Workload Identity Federation | None on the machine | Everything in the table above |
 
 - **Keychain, not files.** The organisation tokens (GitHub, Sentry, App Store Connect) live in
