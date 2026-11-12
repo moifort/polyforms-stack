@@ -1,5 +1,5 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.5.15/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.6.6/schema.json",
   "vcs": {
     "enabled": true,
     "clientKind": "git",
@@ -15,7 +15,11 @@
       "!stack.config.json",
       "!server/system/changelog-content.ts",
       "!ios/**/Assets.xcassets",
-      "!ios/**/*.xcstrings"
+      "!ios/**/*.xcstrings",
+      "!android",
+      "!build",
+      "!.claude",
+      "!**/.context-*"
     ]
   },
   "formatter": {
@@ -42,6 +46,16 @@
       "quoteStyle": "single",
       "semicolons": "asNeeded",
       "trailingCommas": "all"
+    }
+  },
+  "markdown": {
+    "formatter": {
+      "enabled": false
+    }
+  },
+  "yaml": {
+    "formatter": {
+      "enabled": false
     }
   }
 }
