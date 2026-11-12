@@ -11,6 +11,21 @@ upgrades to it:
 The upgrade routine reads the **Upgrade** part first, and the release tag carries the whole
 section as its message.
 
+## 0.5.0 (2026.11.12)
+
+Board comments go to reserve sessions that are recycled, not archived.
+
+### Changed
+- `18-design`, **Comments on the board**: the parent keeps three idle reserve child sessions and
+  sends each board comment to one by message, instead of proposing a session the person must
+  start (an automated turn cannot start one). A child no longer archives itself on the final
+  yes: it tells the parent it is free, and the parent clears its conversation and briefs it
+  again as a reserve.
+
+### Upgrade
+- Nothing to do: the rule is synced with the package. Start the three reserves at the next
+  message in a project with a design board.
+
 ## 0.4.0 (2026.11.12)
 
 Guardrails: what the package installs, and what its templates generate, are checked by CI.
