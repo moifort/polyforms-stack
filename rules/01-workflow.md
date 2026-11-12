@@ -91,5 +91,7 @@ A change in the board's prototyping zone stops after step 1. Never both steps in
 
 Before starting, look at what is installed and invoke what matches the task. Never cite, impose
 or document a skill without checking it exists on the machine. The skills this package ships are
-in `.claude/skills/` after `sync`; the ones that matter are `domain`, `graphql`, `ios-feature`,
-`appstore`, `stack-upgrade`.
+in `.claude/skills/` after `sync`, for the stacks the project has: `domain`, `graphql` and
+`cold-start` (backend), `ios-feature`, `ios-simulator` and `appstore` (iOS), `ai-calls` (AI),
+`stack-install` and `stack-upgrade`. A rule names the skill that holds its long form; the skill
+is read when the task needs it.

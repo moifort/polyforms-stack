@@ -24,7 +24,10 @@ export const SKILL_STACKS: Record<string, Stack[]> = {
   domain: ['backend'],
   graphql: ['backend'],
   'ios-feature': ['ios'],
+  'ios-simulator': ['ios'],
   appstore: ['ios'],
+  'ai-calls': ['ai'],
+  'cold-start': ['backend'],
 }
 
 export const HOOK_STACKS: Record<string, Stack[]> = {

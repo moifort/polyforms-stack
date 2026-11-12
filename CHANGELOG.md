@@ -27,15 +27,32 @@ Guardrails: what the package installs, and what its templates generate, are chec
   zero (`11-ops`); `derived-data`: no `-derivedDataPath` under `/tmp` in `scripts/` or
   `package.json` (`15-tooling`). `bun scripts/check-rules.ts <name>` runs one.
 - Template `biome.json`: `noConsole` on `server/`, tests excepted (`09-backend`, Observability).
+- Skills `ai-calls` (the Gemini billing detail and the dated model table, from `13-ai`),
+  `cold-start` (what the template does for a cold start and how to measure one, from `11-ops`)
+  and `ios-simulator` (runtime downloads, a download stuck on "Preparing to download", a crash
+  at boot, from `15-tooling`).
 - The package's CI generates a backend and iOS project when the iOS or base templates, `src/`
   or `bin/` change, and runs its `ios:build`, `ios:test`, `ios:strings` and `ios:components`.
 
+### Changed
+- The rules every session loads are lighter (1,770 lines to 1,676): the trap stories and the long
+  procedures that serve one task moved, unchanged, to skills read on demand; each rule keeps its
+  normative sentence and names the skill. `07-appstore` (captures and panels, listing, first
+  subscription) into `appstore`; `10-ios` (scrolling performance, screen patterns) into
+  `ios-feature`; `11-ops`, `13-ai` and `15-tooling` into the new skills above. `01-workflow`
+  lists every skill the package ships, by stack.
+
 ### Fixed
+- Skill `ios-feature` built screenshots into a new `/tmp` path per topic, which `15-tooling`
+  forbids: it now builds into the default or the worktree's fixed derived data.
 - Template `scripts/check-strings.ts` compares the catalogue's content, not the order of its
   keys: a freshly generated app failed `ios:strings` because its tagline key, rendered from a
   placeholder, sorts elsewhere than the placeholder did.
 
 ### Upgrade
+- `bunx stack sync`: the rules shrink and the new skills land in `.claude/skills/` (commit them
+  where the project tracks that folder).
+
 In the order `stack migrations` lists them: the checks of `flat-collections` and
 `no-warm-instance` run the script that `check-rules-script` copies.
 
