@@ -35,6 +35,13 @@ One finished task, one commit, as soon as its verification passes. Group coheren
 unrelated tasks, so that a rollback is a clean revert. Stage explicit paths only: never `git add
 -A`, `git add .` or `commit -a`.
 
+## Iteration rounds are one commit
+
+When the person iterates on one piece of UI round after round (a text size, an offset, a height
+of the same card), the result is one commit describing the final state, not one per round:
+keep amending that piece's own last commit, or squash the rounds before the push. Only while
+they are unpushed, only after re-reading HEAD (below), and never across someone else's commit.
+
 ## Amend
 
 Prefer a new commit to an amend, even when an earlier message has become inaccurate: an extra

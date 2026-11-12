@@ -36,11 +36,36 @@ quotes, no semicolons, line width 100.
   hotspot included, silently. Check the interface and the Wi-Fi name before anything else; the
   daemon is not broken.
 - **One simulator at a time on the machine.** Every session and every project uses the same
-  reference device, booted on demand if it is not, and never shut down by a session: the push
-  hook shuts it, with Simulator.app. A session installs its own build into it right before each
-  launch, from a derived data path unique to the session, so two sessions sharing the device
-  never launch each other's build. Two booted simulators is the exception that needs a reason
-  (a capture on a second size).
+  existing reference device (never a device created for a session or a task), booted on demand
+  if it is not, and never shut down by a session: the push hook shuts it, with Simulator.app.
+  Before booting, `xcrun simctl list devices booted`: a device already up is the one to use. A
+  session installs its own build into it right before each launch, so two sessions sharing the
+  device never launch each other's build; one build, install or capture at a time, waiting for
+  another session's `xcodebuild` to finish. Two booted simulators is the exception that needs a
+  reason (a capture on a second size).
+- **Simulators are a free hand**: booting, installing, launching and capturing need no question.
+- **Boot through the simulator tool of the Claude app (`attach`, `launch`) or Simulator.app,
+  never `xcrun simctl boot` alone.** A device booted without a display made SpringBoard crash in
+  a loop (`EXC_BREAKPOINT` in `FBSDisplayMonitor`), with a crash report window each time. When
+  `simctl boot` is the only way, open the tool's panel (`attach`) right after, so it has a
+  display.
+- **At the first sign of a crash, shut down and stop**: a `simctl launch` answering "The system
+  shell probably crashed", or a new `SpringBoard-*.ips` in `~/Library/Logs/DiagnosticReports`.
+  `xcrun simctl shutdown <udid>` at once, no second launch, and tell the person before any new
+  attempt.
+
+## Derived data and disk
+
+- **Never a fresh `-derivedDataPath` per build** (`/tmp/<app>-<task>`, a scratch folder): each new
+  path rebuilds packages, modules and the compilation cache, about 6 GB a build. Two days of
+  capture builds once filled 200 GB of `/tmp` and the disk.
+- By default pass no `-derivedDataPath`: Xcode reuses `~/Library/Developer/Xcode/DerivedData`,
+  which the weekly cleanup routine trims. When a separate folder is needed (a worktree), use one
+  fixed path per worktree, `<worktree>/build/dd`, reused from build to build, never under `/tmp`,
+  and share the packages with `-clonedSourcePackagesDirPath` pointed at the main derived data's
+  `SourcePackages`.
+- **Disk full: look at `/tmp` first**, `du -xhd1 /System/Volumes/Data/private/tmp`; `du ~` does
+  not count it, nor does the cleanup script.
 - `simctl io <udid> screenshot` works when the simulator tool's own capture fails.
 
 ## Browser, and doing things end to end

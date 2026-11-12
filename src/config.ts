@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-export const STACKS = ['backend', 'ios', 'ai', 'paid', 'admin', 'e2e', 'site'] as const
+export const STACKS = ['backend', 'ios', 'android', 'ai', 'paid', 'admin', 'e2e', 'site'] as const
 export type Stack = (typeof STACKS)[number]
 
 export const StackConfig = z.object({

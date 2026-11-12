@@ -10,11 +10,14 @@ export const RULE_STACKS: Record<string, Stack[]> = {
   '13-ai.md': ['ai'],
   '14-infra.md': ['backend'],
   '17-landing.md': ['site'],
+  '18-design.md': ['ios', 'android'],
+  '19-android.md': ['android'],
 }
 
 export const ROUTINE_STACKS: Record<string, Stack[]> = {
   'daily-health.md': ['backend'],
   'deprecations.md': ['backend', 'ios'],
+  'ios-disk-cleanup.md': ['ios'],
 }
 
 export const SKILL_STACKS: Record<string, Stack[]> = {

@@ -56,12 +56,25 @@ Every request that changes a screen ends with a screenshot of the result, sent t
 followed by a wait for their approval. Without exception, and whatever the state of the simulator:
 
 - "the simulator stops at sign-in" is never a reason to skip it. Feed the page its preview
-  fixtures through a temporary launch argument in the app entry point, build into a derived data
-  path unique to the session, install and launch, capture, then revert the harness before the
-  commit. The fixtures and previews stay.
+  fixtures through a temporary launch argument in the app entry point, build (into the default
+  derived data, or the worktree's fixed one: [15-tooling.md](15-tooling.md#derived-data-and-disk)),
+  install and launch, capture, then revert the harness before the commit. The fixtures and
+  previews stay.
+- The capture is positioned on the changed part of the screen, not on the screen's top.
 - Before sending, check the design conventions of [10-ios.md](10-ios.md#design-conventions).
 - Committing before approval is fine. Installing on the person's device before approval is not.
 - The next task does not start until the screenshot is approved.
+
+## A UI change is validated twice
+
+In a project with a design board ([18-design.md](18-design.md)), a requested UI change is
+validated twice, in this order, as two separate asks:
+
+1. **Board**: the change is drawn on the board, the capture is sent, and the person validates.
+2. **App**: only then is it built in the app, with the simulator screenshot above, and a second
+   validation.
+
+A change in the board's prototyping zone stops after step 1. Never both steps in one ask.
 
 ## Ideas and decisions
 

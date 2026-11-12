@@ -10,6 +10,14 @@ changed from Settings" rather than "You can now change your cellar size". Name w
 is, with the exact words of the interface. Give an example wherever it saves an explanation. Full
 sentences, normal punctuation, to the point.
 
+## Labels
+
+- Buttons, calls to action and context menus use the shortest word that says it ("Delete", not
+  "Remove from the library"), and the confirmation button repeats it. Reuse the label already
+  used for the same action elsewhere.
+- The app's own language is never stated (no "in English" tag on an English app): a language is
+  tagged only when it differs from the app's.
+
 ## Forbidden
 
 - **Never an em dash or an en dash.** They read as a machine signature. Rephrase, or use a period,

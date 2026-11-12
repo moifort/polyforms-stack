@@ -134,6 +134,29 @@ a no-cache option in tests. The unit test target runs in CI on every push.
 - **Accessibility**: every icon without text carries a label; every component is checked once
   at the largest Dynamic Type size (text wraps, nothing is clipped, nothing overlaps); colours
   never carry a meaning alone (orange and green dates also say it in words).
+- **Every element has its empty state**, designed with it: a neutral element with an icon,
+  pleasant to look at. A section that matters keeps its place with it; a minor one may hide when
+  empty, as a stated choice. A default state never looks blank because nothing is selected.
+- **Blur, never darken**: text over an image sits on a blurred copy of the image melting in from
+  the bottom (a masked blur), never a black or opacity gradient. At most a faint text shadow.
+- A `Menu` never sits inside a `GlassEffectContainer` next to other buttons: a moving touch on a
+  row over a neighbouring button is dropped and nothing fires. Test a menu row with a
+  `touch_path` drifting 4 to 5 pt over about 120 ms, never a plain `tap`, which hides the bug.
+
+## Scrolling performance
+
+Scrolling holds on the oldest supported iPhones, as Apple's own apps do.
+
+- GPU and main-thread cost is a budget on every scrolled screen: no live blur, mask or shadow per
+  cell; compute such effects once (a baked image) and reuse it.
+- Never put a per-frame scroll value in a page's `@State`: it rebuilds the page on every frame.
+  Use an `@Observable` read only by a small modifier.
+- Hitches are measured on a phone, in Release, never judged on the simulator: a temporary UI test
+  measuring `XCTOSSignpostMetric.scrollingAndDecelerationMetric`, with slow finger-like drags
+  (about 220 pt/s) as well as fast swipes. When the tests look clean and the person still feels
+  lag, a Release build with a frame probe (a `CADisplayLink` logging frame deltas) finds it.
+  Compare runs minutes apart, never an hour apart: the device heats and drifts.
+- Say plainly when old phones were not measured.
 
 ## Screen patterns
 
@@ -183,8 +206,9 @@ bun run ios:build
 
 - Never clear the build cache to unblock a broken build; diagnose the cause.
 - A build into a fresh derived data path needs `SWIFT_ENABLE_EXPLICIT_MODULES=NO` when Sentry's
-  import fails on CoreTelephony. Use a derived data path unique to the session for screenshot
-  builds: parallel sessions share the simulators and `/tmp`.
+  import fails on CoreTelephony. Screenshot builds reuse the default derived data, or the
+  worktree's fixed one, never a new path per build
+  ([15-tooling.md](15-tooling.md#derived-data-and-disk)).
 - `DEVELOPER_DIR` is required when `xcode-select` points at the Command Line Tools.
 - A fresh worktree lacks the gitignored generated client, secrets file, Firebase plist and
   package resolution: copy them from the main checkout.

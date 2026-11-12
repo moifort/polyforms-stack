@@ -63,11 +63,11 @@ A correction given in conversation is written down in the same task, not remembe
 
 | What it is | Where it goes |
 |---|---|
-| A rule that would hold in any project | This package: the rule file, a version bump, a migration if code is affected |
+| A rule, a template, a workflow, a routine or a hook that would hold in any project | This package, edited in its own checkout (`{{CODE_DIR}}/polyforms-stack`) in the same task: the file, a version in `CHANGELOG.md` whose **Upgrade** part says precisely what each project changes (which files, which lines, which commands, how to check), and a migration in `migrations/<version>/` when existing code no longer complies |
 | A fact of this project (an id, an account, a device, a certificate date) | The project's `project-context.md` |
 | A decision specific to this project's product or data model | The project's `CLAUDE.md` |
 
-Claude's private memory keeps neither rules nor project facts. What is not written in a repository
+A request to change how projects are built ("update the CI", "change the rule on…") is a request to change this package, then the project. Claude's private memory keeps neither rules nor project facts. What is not written in a repository
 does not exist at the next session.
 
 ## Languages

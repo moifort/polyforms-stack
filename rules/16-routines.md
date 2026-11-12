@@ -43,6 +43,7 @@ Remote Control connected and is not reliable from a scheduled run.
 | Daily health | Noon, cloud, per app | Through the observer account: spend from the billing export, performance, monitoring; fixes and pushes what is code; reports cold starts as a figure | Proposes a warm instance; reads errors (Sentry's job) |
 | Upgrades | Every morning after Renovate, cloud | Stack pull requests (label `stack`): the `stack-upgrade` skill, sync, migrations with their checks, merge when every migration is safe and CI is green. Major dependency pull requests: reads the changelog and migration guide, applies the code changes, deploys to staging, merges when CI and staging are green, otherwise comments and leaves open | Force-merges; edits rules; touches a pull request without one of those labels |
 | Deprecations | Monthly, cloud, per app | Runs the deprecations script, removes what is removable, raises the build floor, pushes, watches CI and Deploy | Removes anything in grace or still asked; raises the floor by hand |
+| iOS disk cleanup | Weekly, desktop, the machine | Trims old derived data, unavailable simulators, stale Swift package caches, Xcode caches; reports runtimes and `/tmp` to clean by hand | Deletes a runtime, an archive, a project or anything under `/tmp`; downloads a runtime |
 
 ## Shipped by the package, installed on the machine
 
