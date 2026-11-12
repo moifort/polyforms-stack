@@ -2,7 +2,7 @@
 
 ## What a machine needs
 
-Installed once; the bootstrap checks they are there and names what is missing.
+Installed once.
 
 | Tool | Install | Used for |
 |---|---|---|

@@ -1,7 +1,12 @@
 # The Polyforms stack: one versioned package for every app
 
 Date: 2026-10-21
-Status: design, awaiting approval. Supersedes `dev-playbook`'s
+Status: built, released as 0.1.0 on 2026-10-21. Kept as the record of the intent; where it
+and the package differ, the package and `CHANGELOG.md` are right. As built: the rules are
+rendered into the project's `stack/rules/` and imported from there (not from `node_modules`);
+`sync` writes the routines into `stack/routines/` (not into the machine's scheduled tasks);
+`bootstrap`, `teardown` and the `PolyformsUI` Swift package are not built; migrations use bold
+lead-ins rather than the headings below. Supersedes `dev-playbook`'s
 `2026-09-19-npm-library-design.md`, which was never implemented; this project starts from zero with
 Shiori as the reference.
 

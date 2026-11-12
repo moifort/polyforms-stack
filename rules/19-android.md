@@ -63,3 +63,5 @@ it says the App Store) live in a hand-kept file beside it.
   with a launch argument: screenshots never wait on a sign-in.
 - CI: `build-android` on every change under `android/` or to the shared GraphQL documents;
   `release-android` on an `android-v*` tag, to a Play track.
+- The `android` stack ships the components check only: the app, its Gradle setup and these two
+  workflows are written in the project, no template ships them yet.

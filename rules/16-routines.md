@@ -49,10 +49,10 @@ Remote Control connected and is not reliable from a scheduled run.
 
 The routines' prompts live in `routines/` of this package, with placeholders for the project's
 facts. A routine is `scope: machine` (one instance for every project: Sentry triage, stack
-upgrades) or `scope: project` (one per project: daily health). `sync` renders them into
-`~/.claude/scheduled-tasks/<id>/SKILL.md` (`<id>-<app>` for a project routine); the
-`stack-install` and `stack-upgrade` skills then create the scheduled task when it does not exist
-and update its prompt and cadence when it does, through the app's scheduled-tasks tools. A routine
+upgrades) or `scope: project` (one per project: daily health). `sync` renders them into the
+project's `stack/routines/<id>.md`; the `stack-install` and `stack-upgrade` skills then create
+the scheduled task from that file when it does not exist (named `<id>-<app>` for a project
+routine) and update its prompt and cadence when it does, through the app's scheduled-tasks tools. A routine
 is never edited by hand on the machine: the change goes into the package and reaches every machine
 and project at the next version.
 

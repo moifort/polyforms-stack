@@ -97,7 +97,7 @@ Long lists load by **cursor, never offset**: an offset shifts under a list that 
 two pages. Page size is sized to the screen, not the dataset; the server caps a page. Prefetch
 before the end, well below the page size. A load-more row closes the list while there is more,
 with a retry once a page failed. **A page asked before a reload is never appended to the list that
-replaced it**, and an edit deep in a list never shrinks it. The mechanisms Shiori uses for that
+replaced it**, and an edit deep in a list never shrinks it. The mechanisms that hold it
 (generation token, reload keeping depth, patching a named row) are in the `ios-feature` skill as
 a pattern to copy, not a requirement.
 
@@ -115,7 +115,8 @@ them. A view that resists previewing is a design smell: pull the pure part out. 
 how a view looks; unit tests check what the app decides: ViewModels with an inline fake client
 (state after a load, after a failure over rows and over nothing, a stale page dropped, a row
 patched), and pure functions on models. Never a test of a SwiftUI `body`. A cached ViewModel takes
-a no-cache option in tests. The unit test target runs in CI on every push.
+a no-cache option in tests. The unit test target runs in `build-ios`: before every release, and by
+hand at any time ([12-ci.md](12-ci.md#rules)).
 
 ## Design conventions
 
@@ -161,7 +162,7 @@ Scrolling holds on the oldest supported iPhones, as Apple's own apps do.
 ## Screen patterns
 
 The shapes every app repeats, so they are not re-explained per project. Code in the
-`ios-feature` skill and in the shared component package.
+`ios-feature` skill and in the app's `Shared/Components/`.
 
 **A list row.** Image or icon on the left; the text block **top-aligned** beside it: title, one
 secondary line, at most one tag; a status tag in the top corner when the list is not already
@@ -186,17 +187,18 @@ drawn in the list body with the one action that fills it.
 an `AsyncToolbarButton`; the first field focused on appear; a picker shows its current value in
 its row; destructive confirmation as a dialog, never a toggle.
 
-## Shared component package
+## Shared components
 
-The pure atoms, molecules and styles that carry no business meaning live in the shared Swift
-package `PolyformsUI`, versioned by tag and tracked by Renovate like any dependency:
-`AsyncButton`, `AsyncToolbarButton`, `ToolbarIconButton`, `EmptyState`, `LabeledInfoRow`,
-`LoadMoreRow`, `MenuPicker`, `SegmentedBar`, `TagList`, `RowChip`, `WidgetCard`, star ratings,
-the row and caption label styles, `Copyable`, the edge-to-edge separator, the AI glow. Each ships
-with its preview, and the package carries a catalogue app showing every component in every
-state. An app's `Shared/Components/` holds only what is specific to that app; a component that
-turns out generic moves up to the package with a version bump. Organisms (a book row, a cover
-tile) stay in their app: they carry the product.
+The pure atoms, molecules and styles that carry no business meaning are seeded by the template
+into the app's `Shared/Components/`, each with its preview: `AsyncButton`,
+`AsyncToolbarButton`, `ToolbarIconButton`, `EmptyState`, `LabeledInfoRow`, the row and caption
+label styles, `Copyable`, the edge-to-edge separator. A fix to one of them, or a component that
+turns out generic, goes into the template in the same task, so the next app starts with it.
+Organisms (a book row, a cover tile) stay in their app: they carry the product.
+
+**Not shipped yet**: a shared Swift package (`PolyformsUI`, versioned by tag, tracked by
+Renovate, with a catalogue app showing every component in every state) is the target. Until it
+exists, no app depends on it and the template is the shared copy.
 
 ## Build and capture
 

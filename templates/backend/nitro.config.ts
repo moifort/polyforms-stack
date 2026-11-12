@@ -27,7 +27,7 @@ export default defineNitroConfig({
   // Sentry at deploy time and stay out of the deployed bundle.
   sourceMap: true,
   // A cold start spent 3.6 s of its 4.3 s loading dependencies before the first
-  // line of the bundle (measured on Shiori, 89 instances): the firebase preset
+  // line of the bundle (measured in production, 89 instances): the firebase preset
   // leaves them as about 3,200 files in node_modules, and Cloud Run pays every
   // one of them. Bundling them in cut the load by 41 %. The Firebase and gRPC
   // stack stays on disk: google-gax reads its .proto files through `__dirname`,

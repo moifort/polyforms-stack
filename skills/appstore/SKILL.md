@@ -8,8 +8,8 @@ description: Use when preparing an App Store or TestFlight step of a Polyforms a
 ## The release, in order
 
 1. `bun run deprecations`, remove what is removable, floor raised by the script's value.
-2. Notes in `CHANGELOG.md` and each `CHANGELOG.<lang>.md` (rule 06), French shown and
-   approved in the conversation.
+2. Notes in `CHANGELOG.md` and each `CHANGELOG.<lang>.md` (rule 06), the review language's version shown
+   and approved in the conversation.
 3. Push `main`, watch Deploy.
 4. Captures and panels only if the person asked.
 5. `git tag ios-v<version> && git push origin ios-v<version>`; watch Release to the end.
