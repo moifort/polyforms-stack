@@ -1,0 +1,103 @@
+name: Generated iOS
+
+# A project generated with the backend and iOS stacks must build, pass its unit
+# tests, its strings check and its components check. Its own file because `paths`
+# filters a workflow, not a job: a change to the rules or to the backend template
+# alone does not wait on a macOS runner.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'templates/ios/**'
+      - 'templates/base/**'
+      - 'src/**'
+      - 'bin/**'
+      - '.github/workflows/generated-ios.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'templates/ios/**'
+      - 'templates/base/**'
+      - 'src/**'
+      - 'bin/**'
+      - '.github/workflows/generated-ios.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: generated-ios-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  generated-ios:
+    name: 📱 Generated iOS project
+    runs-on: macos-26
+    # A cold build: no package or derived data cache, the sample is new each run.
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          path: stack
+
+      # The project's scripts pin DEVELOPER_DIR to /Applications/Xcode.app, which
+      # the image links to its default Xcode: selecting another one here would be
+      # ignored by them.
+
+      # Booted first, so its first start runs alongside the generation and the
+      # build. The newest iOS runtime's iPhone 17, as the template's build-ios
+      # takes it; `ios:test` asks for it by name, and xcodebuild resolves a bare
+      # name to the newest runtime, so no second simulator boots.
+      - name: Boot the simulator the tests run on
+        run: |
+          set -euo pipefail
+          picked=$(xcrun simctl list devices available -j | jq -r '
+            .devices | to_entries
+            | map(select(.key | test("SimRuntime\\.iOS-")) | .key as $rt | .value[]
+                  | select(.isAvailable and (.name | startswith("iPhone")))
+                  | {name, udid, exact: (.name == "iPhone 17"),
+                     rt: ($rt | capture("iOS-(?<v>[0-9-]+)$").v | split("-") | map(tonumber))})
+            | sort_by([.exact, .rt]) | last
+            | "\(.udid)\t\(.name)"')
+          udid=${picked%%$'\t'*}
+          echo "Testing on ${picked#*$'\t'} ($udid)"
+          echo "IOS_SIMULATOR=${picked#*$'\t'}" >> "$GITHUB_ENV"
+          xcrun simctl boot "$udid"
+
+      - uses: oven-sh/setup-bun@v2
+      - run: brew install xcodegen
+      - run: (cd stack && bun install --frozen-lockfile)
+
+      - name: Generate
+        run: |
+          mkdir -p sample && cd sample && git init -q
+          bun ../stack/bin/stack.ts init --stacks backend,ios --set APP_NAME=Sample --set APP_SLUG=sample
+          sed -i '' "s#\"@moifort/stack\": \"[^\"]*\"#\"@moifort/stack\": \"file:../stack\"#" package.json
+          # The app calls FirebaseApp.configure() at launch, and the test host is the
+          # app: without a plist the tests crash before the first one. A project
+          # materializes the real one from a secret; the sample gets one in the right
+          # format, which configures offline and is never reached.
+          bundle=$(sed -n 's/.*PRODUCT_BUNDLE_IDENTIFIER: *"*\([^"]*\)"*/\1/p' ios/project.yml | head -1)
+          cat > ios/Sample/GoogleService-Info.plist <<EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>API_KEY</key><string>AIzaSyA-sample-key-for-ci-builds-000000</string>
+            <key>GCM_SENDER_ID</key><string>123456789012</string>
+            <key>BUNDLE_ID</key><string>${bundle}</string>
+            <key>PROJECT_ID</key><string>sample-ci</string>
+            <key>GOOGLE_APP_ID</key><string>1:123456789012:ios:0000000000000000000000</string>
+          </dict>
+          </plist>
+          EOF
+
+      - name: Check
+        working-directory: sample
+        run: |
+          bun install
+          bun run ios:build
+          bun run ios:test
+          bun run ios:strings
+          bun run ios:components

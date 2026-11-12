@@ -86,9 +86,11 @@ for (const { path, product } of CATALOGUES) {
     if (!localizations.en) missing.push(`${basename(product, '.build')}: ${JSON.stringify(key)}`)
   }
 
+  // Compared in Xcode's order, so a key that only sits elsewhere (a template
+  // placeholder rendered into a key that sorts differently) is not a difference.
   const before = await readFile(path, 'utf8')
   const after = serialize(catalogue)
-  if (before === after) continue
+  if (serialize(JSON.parse(before)) === after) continue
   if (write) {
     await writeFile(path, after)
     console.log(`${basename(product, '.build')}: catalogue synced`)

@@ -21,6 +21,13 @@ Guardrails: what the package installs, and what its templates generate, are chec
   block of `CLAUDE.md`, a skill or a hook edited by hand, or not synced, fails. Intended effect:
   the Renovate pull request that bumps `@moifort/stack` is red until the upgrade routine has run
   `sync` on its branch, so a bump is never merged unsynced.
+- The package's CI generates a backend and iOS project when the iOS or base templates, `src/`
+  or `bin/` change, and runs its `ios:build`, `ios:test`, `ios:strings` and `ios:components`.
+
+### Fixed
+- Template `scripts/check-strings.ts` compares the catalogue's content, not the order of its
+  keys: a freshly generated app failed `ios:strings` because its tagline key, rendered from a
+  placeholder, sorts elsewhere than the placeholder did.
 
 ### Upgrade
 - `stack-check-in-ci` (safe): `stack:check` at the end of `preflight`, and `bunx stack check` in
