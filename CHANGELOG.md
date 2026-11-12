@@ -44,6 +44,9 @@ An audit of the package against itself: what the rules say and what the package 
 - Renovate runs with the `RENOVATE_TOKEN` repository secret, as its workflow always did;
   `14-infra` described a GitHub App.
 
+- The `stack-install` skill says what each stack brings (rules, routines, skills, templates),
+  and that `paid`, `admin` and `e2e` select nothing yet; the validation keeps its table in step
+  with the catalogue.
 - Rule `09-backend` promised a migration from `export namespace` blocks to modules imported
   with `import * as`, and none existed: it ships now.
 

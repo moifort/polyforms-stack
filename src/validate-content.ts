@@ -16,6 +16,7 @@ import { readdir } from 'node:fs/promises'
 import { dirname, resolve } from 'node:path'
 import semver from 'semver'
 import { HOOK_STACKS, ROUTINE_STACKS, RULE_STACKS, SKILL_STACKS } from './catalogue'
+import { STACKS } from './config'
 import { parseFrontmatter, readMigrations } from './migrations'
 import { packageDir } from './package'
 import { isText } from './templates'
@@ -121,6 +122,26 @@ for (const { path, text } of prose) {
     if (!commands.has(command) && !planned)
       problems.push(`${relative(path)}: \`stack ${command}\` is not a command of the CLI`)
   }
+}
+
+// The install skill's table of stacks follows the catalogue: each stack has its row, and the
+// rules the row names are the ones the catalogue ties to that stack.
+const installSkill = await Bun.file(`${root}/skills/stack-install/SKILL.md`).text()
+for (const stack of STACKS) {
+  const row = installSkill.split('\n').find((line) => line.startsWith(`| \`${stack}\` |`))
+  if (!row) {
+    problems.push(`skills/stack-install/SKILL.md: no row for the ${stack} stack`)
+    continue
+  }
+  const named = [...(row.split('|')[2] ?? '').matchAll(/`(\d\d)`/g)].map((m) => m[1]).sort()
+  const selected = Object.entries(RULE_STACKS)
+    .filter(([, stacks]) => stacks.includes(stack))
+    .map(([file]) => file.slice(0, 2))
+    .sort()
+  if (named.join() !== selected.join())
+    problems.push(
+      `skills/stack-install/SKILL.md: the ${stack} row names rules ${named.join(', ') || 'none'}, the catalogue selects ${selected.join(', ') || 'none'}`,
+    )
 }
 
 for (const [dir, catalogue] of [

@@ -13,10 +13,27 @@ bunx @moifort/stack init --stacks backend,ios --set APP_TAGLINE="..."
 bun install
 ```
 
-Stacks: `backend`, `ios`, `android`, `ai`, `paid`, `admin`, `e2e`, `site`. `init` stops and
-names every placeholder the chosen stacks use that it cannot derive: pass each with
-`--set NAME=value`. Derived ones (name, slug, bundle id, repository) come from the folder name
-and can be overridden the same way.
+What each stack brings today. Every project gets the process rules (`00` to `06`, `08`, `15`,
+`16`), the `sentry-autofix` and `stack-upgrade` routines, the `stack-install` and
+`stack-upgrade` skills and the base templates, whatever its stacks.
+
+| Stack | Rules | Routines, skills, hook | Templates |
+|---|---|---|---|
+| `backend` | `09`, `11`, `12`, `14` | `daily-health`, `deprecations`; `domain`, `graphql` | The server, Terraform, workflows, scripts |
+| `ios` | `07`, `10`, `12`, `18` | `deprecations`, `ios-disk-cleanup`; `ios-feature`, `appstore`; the push hook | The app, workflows, fastlane, scripts |
+| `android` | `18`, `19` | None | The components check only |
+| `ai` | `13` | None | None |
+| `site` | `17` | None | None |
+| `paid` | None | None | None |
+| `admin` | None | None | None |
+| `e2e` | None | None | None |
+
+`paid`, `admin` and `e2e` select nothing yet: they state what the project has, and rules `05`
+and `15` read `e2e` for the end-to-end gate and its tools.
+
+`init` stops and names every placeholder the chosen stacks use that it cannot derive: pass each
+with `--set NAME=value`. Derived ones (name, slug, bundle id, repository) come from the folder
+name and can be overridden the same way.
 
 Then, in order, verifying each:
 1. `bun run preflight` green.
