@@ -124,8 +124,8 @@ for (const { path, text } of prose) {
   }
 }
 
-// The install skill's table of stacks follows the catalogue: each stack has its row, and the
-// rules the row names are the ones the catalogue ties to that stack.
+// The install skill's table of stacks follows the catalogue: each stack has its row, the rules
+// the row names are the ones the catalogue ties to that stack, and it names each skill tied to it.
 const installSkill = await Bun.file(`${root}/skills/stack-install/SKILL.md`).text()
 for (const stack of STACKS) {
   const row = installSkill.split('\n').find((line) => line.startsWith(`| \`${stack}\` |`))
@@ -142,6 +142,9 @@ for (const stack of STACKS) {
     problems.push(
       `skills/stack-install/SKILL.md: the ${stack} row names rules ${named.join(', ') || 'none'}, the catalogue selects ${selected.join(', ') || 'none'}`,
     )
+  for (const [skill, stacks] of Object.entries(SKILL_STACKS))
+    if (stacks.includes(stack) && !(row.split('|')[3] ?? '').includes(`\`${skill}\``))
+      problems.push(`skills/stack-install/SKILL.md: the ${stack} row lacks the ${skill} skill`)
 }
 
 for (const [dir, catalogue] of [

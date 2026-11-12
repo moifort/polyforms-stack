@@ -19,10 +19,10 @@ What each stack brings today. Every project gets the process rules (`00` to `06`
 
 | Stack | Rules | Routines, skills, hook | Templates |
 |---|---|---|---|
-| `backend` | `09`, `11`, `12`, `14` | `daily-health`, `deprecations`; `domain`, `graphql` | The server, Terraform, workflows, scripts |
-| `ios` | `07`, `10`, `12`, `18` | `deprecations`, `ios-disk-cleanup`; `ios-feature`, `appstore`; the push hook | The app, workflows, fastlane, scripts |
+| `backend` | `09`, `11`, `12`, `14` | `daily-health`, `deprecations`; `domain`, `graphql`, `cold-start` | The server, Terraform, workflows, scripts |
+| `ios` | `07`, `10`, `12`, `18` | `deprecations`, `ios-disk-cleanup`; `ios-feature`, `ios-simulator`, `appstore`; the push hook | The app, workflows, fastlane, scripts |
 | `android` | `18`, `19` | None | The components check only |
-| `ai` | `13` | None | None |
+| `ai` | `13` | `ai-calls` | None |
 | `site` | `17` | None | None |
 | `paid` | None | None | None |
 | `admin` | None | None | None |

@@ -40,7 +40,8 @@ Guardrails: what the package installs, and what its templates generate, are chec
   normative sentence and names the skill. `07-appstore` (captures and panels, listing, first
   subscription) into `appstore`; `10-ios` (scrolling performance, screen patterns) into
   `ios-feature`; `11-ops`, `13-ai` and `15-tooling` into the new skills above. `01-workflow`
-  lists every skill the package ships, by stack.
+  lists every skill the package ships, by stack, and `bun run validate` checks that the
+  `stack-install` skill's table of stacks names each skill the catalogue ties to a stack.
 
 ### Fixed
 - Skill `ios-feature` built screenshots into a new `/tmp` path per topic, which `15-tooling`
