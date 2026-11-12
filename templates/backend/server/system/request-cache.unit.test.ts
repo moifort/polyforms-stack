@@ -3,8 +3,10 @@ import { AsyncLocalStorage } from 'node:async_hooks'
 import {
   evictFromRequestCache,
   isInRequestCache,
+  memoizedManyPerRequest,
   memoizedPerRequest,
   reviseInRequestCache,
+  withRequestCacheScope,
 } from './request-cache'
 
 // The request cache reads the current H3 event via the auto-imported useEvent().
@@ -62,6 +64,70 @@ describe('memoizedPerRequest', () => {
     memoizedPerRequest('k', () => ++calls)
     expect(calls).toBe(2)
     expect(isInRequestCache('k')).toBe(false)
+  })
+})
+
+describe('memoizedManyPerRequest', () => {
+  afterEach(() => {
+    delete (globalThis as unknown as { useEvent?: unknown }).useEvent
+  })
+
+  const reading = () => {
+    const batches: string[][] = []
+    const read = async (missing: readonly string[]) => {
+      batches.push([...missing])
+      await Promise.resolve()
+      return missing.map((key) => key.toUpperCase())
+    }
+    return { batches, read }
+  }
+  const keyOf = (key: string) => `doc:${key}`
+
+  test('two callers asking the same documents side by side share one read', async () => {
+    withRequest()
+    const { batches, read } = reading()
+
+    const [first, second] = await Promise.all([
+      memoizedManyPerRequest(['a', 'b'], keyOf, read),
+      memoizedManyPerRequest(['b', 'a', 'c'], keyOf, read),
+    ])
+
+    expect(first).toEqual(['A', 'B'])
+    expect(second).toEqual(['B', 'A', 'C'])
+    expect(batches).toEqual([['a', 'b'], ['c']])
+  })
+
+  test('reads a document asked twice in one call once', async () => {
+    withRequest()
+    const { batches, read } = reading()
+
+    expect(await memoizedManyPerRequest(['a', 'a'], keyOf, read)).toEqual(['A'])
+    expect(batches).toEqual([['a']])
+  })
+
+  test('shares its memo with a single lookup, both ways, until a write', async () => {
+    withRequest()
+    const { batches, read } = reading()
+    await memoizedPerRequest(keyOf('a'), async () => 'A')
+
+    await memoizedManyPerRequest(['a', 'b'], keyOf, read)
+    expect(batches).toEqual([['b']])
+    expect(await memoizedPerRequest(keyOf('b'), async () => 'read again')).toBe('B')
+
+    evictFromRequestCache(keyOf('b'))
+    await memoizedManyPerRequest(['a', 'b'], keyOf, read)
+    expect(batches).toEqual([['b'], ['b']])
+  })
+
+  test('reads everything in one batch, uncached, without a request context', async () => {
+    const { batches, read } = reading()
+
+    expect(await memoizedManyPerRequest(['a', 'b'], keyOf, read)).toEqual(['A', 'B'])
+    await memoizedManyPerRequest(['a', 'b'], keyOf, read)
+    expect(batches).toEqual([
+      ['a', 'b'],
+      ['a', 'b'],
+    ])
   })
 })
 
@@ -161,6 +227,47 @@ describe('memoizedPerRequest shared in flight', () => {
       memoizedPerRequest('library', run, sharing),
       memoizedPerRequest('library', run, sharing),
     ])
+    expect(calls).toBe(2)
+  })
+})
+
+describe('withRequestCacheScope', () => {
+  afterEach(() => {
+    delete (globalThis as unknown as { useEvent?: unknown }).useEvent
+  })
+
+  const pause = () => new Promise((resolve) => setTimeout(resolve, 1))
+
+  test('gives scopes running side by side a cache each, and leaves the request its own', async () => {
+    const request: Record<string, unknown> = {}
+    withRequest(request)
+    memoizedPerRequest('outer', () => 'request')
+
+    const inScope = (reader: string) =>
+      withRequestCacheScope(async () => {
+        memoizedPerRequest('library', () => reader)
+        await pause()
+        const seen = memoizedPerRequest('library', () => 'read again')
+        evictFromRequestCache('library')
+        return [seen, isInRequestCache('outer')]
+      })
+
+    expect(await Promise.all([inScope('a'), inScope('b'), inScope('c')])).toEqual([
+      ['a', false],
+      ['b', false],
+      ['c', false],
+    ])
+    expect(isInRequestCache('outer')).toBe(true)
+    expect(isInRequestCache('library')).toBe(false)
+  })
+
+  test('runs uncached outside a request', async () => {
+    let calls = 0
+    const read = () => ++calls
+    await withRequestCacheScope(async () => {
+      memoizedPerRequest('k', read)
+      memoizedPerRequest('k', read)
+    })
     expect(calls).toBe(2)
   })
 })

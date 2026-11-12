@@ -1,3 +1,5 @@
+// biome-ignore-all assist/source/organizeImports: boot-marks stays first, so that it evaluates first in the bundle and splits the externals from our own modules.
+import { markBootStep } from '~/system/boot-marks'
 import * as Sentry from '@sentry/node'
 import { config } from '~/system/config/index'
 import { flushReports } from '~/system/logger'
@@ -8,6 +10,7 @@ export default defineNitroPlugin((nitroApp) => {
   // import.meta.dev is compile-time, so the guard costs nothing in the prod bundle
   // and everything below it is tree-shaken out of dev builds.
   if (import.meta.dev) return
+  markBootStep('bundleRestMs')
 
   const { sentryDsn, sentryRelease } = config()
   if (!sentryDsn) return
@@ -20,7 +23,14 @@ export default defineNitroPlugin((nitroApp) => {
     // each one carries its trace id, so an app error and the resolver that threw
     // still line up in the same trace at a tenth of the transaction volume.
     tracesSampleRate: 0.1,
+    // The SDK otherwise registers a module loader hook (`module.register`, on
+    // its own thread) to instrument third-party packages. That was 0.4 s of
+    // every cold start, and a week of production traces held no span it
+    // produced: the outgoing http.client spans come from Node's own
+    // diagnostics channels, which this does not touch.
+    enableRuntimeChannelInjection: false,
   })
+  markBootStep('sentryMs')
 
   const originalHandler = nitroApp.h3App.handler
   nitroApp.h3App.handler = ((event) =>

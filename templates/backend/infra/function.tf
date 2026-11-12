@@ -84,12 +84,17 @@ resource "google_cloudfunctions2_function" "server" {
 
   service_config {
     # One whole CPU and several requests per instance: the app asks a screen's
-    # queries at once, and they mostly wait on Firestore. The globals are
-    # per-instance on purpose and the request cache lives on the event, so
-    # nothing leaks between requests.
-    available_memory                 = "512Mi"
+    # queries at once, and they mostly wait on Firestore and the models. The
+    # globals are per-instance on purpose and the request cache lives on the
+    # event, so nothing leaks between requests.
+    #
+    # Sixteen at once: eight let one screen opening spill onto a second cold
+    # instance. Sixteen is bounded by memory, not by the CPU: an idle instance
+    # holds about 170 MB (the built bundle), the heaviest request about 40 MB.
+    # Raise it only with the memory, and mirror both in nitro.config.ts.
+    available_memory                 = "1Gi"
     available_cpu                    = "1"
-    max_instance_request_concurrency = 8
+    max_instance_request_concurrency = 16
     # Mirrors `timeoutSeconds` in nitro.config.ts, which Terraform does not read:
     # raise both together.
     timeout_seconds    = 60
