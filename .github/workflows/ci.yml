@@ -45,4 +45,5 @@ jobs:
           bun run test:int
           bun run test:feat
           bun run build
+          bun run rules:check
           bun run stack:check

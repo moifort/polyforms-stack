@@ -52,7 +52,7 @@ memoisation).
 
 - **Collections are flat.** Never a subcollection: every document sits in a top-level collection
   and names its owner in a `userId` field. Accounts live in `users/{userId}`. Every query filters
-  on `userId`.
+  on `userId`. `bun run rules:check` refuses a subcollection.
 - A shared document (a catalogue two users converge on) holds no reference to any user and is
   keyed deterministically by what identifies it, so the paid call that produced it is paid once.
 - **A field for a decided feature is added before production data exists.** Before the first
@@ -116,7 +116,8 @@ answers quickly, doing the work in bounded batches.
 
 ## Observability
 
-Never `console.*`. One logger per component, `createLogger(tag)`. Three levels with a meaning:
+Never `console.*` (Biome's `noConsole` refuses it under `server/`, tests excepted). One logger per
+component, `createLogger(tag)`. Three levels with a meaning:
 
 | Level | Meaning | Goes to Sentry |
 |---|---|---|

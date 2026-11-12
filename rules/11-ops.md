@@ -63,7 +63,8 @@ must never be blocked with no update to install.
 
 Never a warm instance (`min_instance_count`), whatever the p95 says. Scaling to zero is the point;
 cold starts are absorbed by the launch screen, and when traffic grows the users keep instances
-warm. A p95 driven by cold starts is a figure to report, not an action item.
+warm. A p95 driven by cold starts is a figure to report, not an action item. `bun run rules:check`
+refuses a `min_instance_count` or a `minInstances` above zero.
 
 What is worked on instead is the cold start itself, measured before it is changed:
 

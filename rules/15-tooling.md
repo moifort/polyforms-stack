@@ -63,7 +63,8 @@ quotes, no semicolons, line width 100.
   which the weekly cleanup routine trims. When a separate folder is needed (a worktree), use one
   fixed path per worktree, `<worktree>/build/dd`, reused from build to build, never under `/tmp`,
   and share the packages with `-clonedSourcePackagesDirPath` pointed at the main derived data's
-  `SourcePackages`.
+  `SourcePackages`. `bun run rules:check` refuses a `-derivedDataPath` under `/tmp` in
+  `scripts/` and `package.json`.
 - **Disk full: look at `/tmp` first**, `du -xhd1 /System/Volumes/Data/private/tmp`; `du ~` does
   not count it, nor does the cleanup script.
 - `simctl io <udid> screenshot` works when the simulator tool's own capture fails.

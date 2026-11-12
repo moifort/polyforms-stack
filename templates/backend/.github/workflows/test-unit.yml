@@ -37,6 +37,9 @@ jobs:
       # stack/, the CLAUDE.md rules block and the skills are what sync renders from the
       # installed package: one edited by hand, or not synced after a bump, fails here.
       - run: bunx stack check
+      # The rules a search settles: flat collections, no warm instance, no derived data
+      # under /tmp (scripts/check-rules.ts).
+      - run: bun run rules:check
       - run: bun test .unit.test
 
   # Guard: the Cloud Function build on GCP runs `npm install` (strict peer deps)

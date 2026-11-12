@@ -21,6 +21,12 @@ Guardrails: what the package installs, and what its templates generate, are chec
   block of `CLAUDE.md`, a skill or a hook edited by hand, or not synced, fails. Intended effect:
   the Renovate pull request that bumps `@moifort/stack` is red until the upgrade routine has run
   `sync` on its branch, so a bump is never merged unsynced.
+- Template `scripts/check-rules.ts`, `bun run rules:check`, in the preflight and the `unit` job:
+  the rules a search settles are checked, not re-read. `flat-collections`: no subcollection under
+  `server/` (`09-backend`); `warm-instance`: no `min_instance_count` or `minInstances` above
+  zero (`11-ops`); `derived-data`: no `-derivedDataPath` under `/tmp` in `scripts/` or
+  `package.json` (`15-tooling`). `bun scripts/check-rules.ts <name>` runs one.
+- Template `biome.json`: `noConsole` on `server/`, tests excepted (`09-backend`, Observability).
 - The package's CI generates a backend and iOS project when the iOS or base templates, `src/`
   or `bin/` change, and runs its `ios:build`, `ios:test`, `ios:strings` and `ios:components`.
 
@@ -30,8 +36,22 @@ Guardrails: what the package installs, and what its templates generate, are chec
   placeholder, sorts elsewhere than the placeholder did.
 
 ### Upgrade
+In the order `stack migrations` lists them: the checks of `flat-collections` and
+`no-warm-instance` run the script that `check-rules-script` copies.
+
+- `check-rules-script` (safe): copy `scripts/check-rules.ts`, add the `rules:check` script,
+  call it in `preflight` before `stack:check` and in the `unit` job after `bunx stack check`. A
+  failing `derived-data` check is fixed as the 0.2.0 migration `derived-data-reuse` says.
+- `flat-collections` (review): a subcollection becomes a top-level collection keyed by `userId`,
+  with a data migration. A project built from the template passes as is.
+- `no-console-in-server` (review): the `noConsole` override in `biome.json`, then each
+  `console.*` under `server/` becomes a `createLogger` call at the level its meaning says.
+- `no-warm-instance` (safe): `min_instance_count = 0` in `infra/function.tf`, no `minInstances`
+  in `nitro.config.ts`.
 - `stack-check-in-ci` (safe): `stack:check` at the end of `preflight`, and `bunx stack check` in
   the `unit` job of `test-unit.yml`, after Biome.
+- `scripts/check-strings.ts` (ios): nothing to do; a project's catalogue was put in order by its
+  first `ios:strings --write`. Copy the template's file to get the content comparison.
 
 ## 0.3.2 (2026.11.12)
 
