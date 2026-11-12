@@ -77,14 +77,17 @@ jobs:
           # The app calls FirebaseApp.configure() at launch, and the test host is the
           # app: without a plist the tests crash before the first one. A project
           # materializes the real one from a secret; the sample gets one in the right
-          # format, which configures offline and is never reached.
+          # format, which configures offline and is never reached. Its API key is
+          # built here, never written out: a literal in a key's format, even a made-up
+          # one, is reported by GitHub's secret scanning.
+          api_key="AIza$(printf '%035d' 0)"
           bundle=$(sed -n 's/.*PRODUCT_BUNDLE_IDENTIFIER: *"*\([^"]*\)"*/\1/p' ios/project.yml | head -1)
           cat > ios/Sample/GoogleService-Info.plist <<EOF
           <?xml version="1.0" encoding="UTF-8"?>
           <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
           <plist version="1.0">
           <dict>
-            <key>API_KEY</key><string>AIzaSyA-sample-key-for-ci-builds-000000</string>
+            <key>API_KEY</key><string>${api_key}</string>
             <key>GCM_SENDER_ID</key><string>123456789012</string>
             <key>BUNDLE_ID</key><string>${bundle}</string>
             <key>PROJECT_ID</key><string>sample-ci</string>

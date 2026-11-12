@@ -5,7 +5,8 @@
  *   migration is listed in its version's section of CHANGELOG.md, newest version first;
  * - no em or en dash in the rules, routines, skills and migrations;
  * - no identifier or name that belongs to one project, in anything a project receives
- *   (the denylist lives outside the published files);
+ *   (the denylist lives outside the published files), and no tracked file holds a string
+ *   in the format of a credential;
  * - every relative link and anchor resolves;
  * - every `bun run <script>` named exists in a template's package.json;
  * - every `stack <command>` named is a command of the CLI, unless the file says the
@@ -64,6 +65,25 @@ for (const dir of ['rules', 'routines', 'skills', 'migrations', 'hooks', 'templa
     for (const word of denylist)
       if (text.includes(word)) problems.push(`${relative(path)}: contains ${word}`)
   }
+}
+
+// Nothing tracked holds a string in the format of a credential, made-up ones included: the
+// repository is public, and a scanner cannot tell a placeholder from a leak.
+const CREDENTIALS: [string, RegExp][] = [
+  ['a Google API key', /AIza[0-9A-Za-z_-]{35}/],
+  ['a GitHub token', /\b(gh[pousr]_[A-Za-z0-9]{36,}|github_pat_[A-Za-z0-9_]{22,})/],
+  ['an Anthropic key', /\bsk-ant-[A-Za-z0-9_-]{20,}/],
+  ['a Sentry token', /\bsntry[su]_[A-Za-z0-9_+/=-]{20,}/],
+  ['a private key', /-----BEGIN [A-Z ]*PRIVATE KEY-----/],
+]
+const tracked = (await Bun.$`git -C ${root} ls-files`.nothrow().text()).split('\n').filter(Boolean)
+for (const file of tracked) {
+  if (!isText(file)) continue
+  const text = await Bun.file(`${root}/${file}`)
+    .text()
+    .catch(() => '')
+  for (const [name, pattern] of CREDENTIALS)
+    if (pattern.test(text)) problems.push(`${file}: holds a string in the format of ${name}`)
 }
 
 for (const path of await walk(`${root}/routines`)) {
