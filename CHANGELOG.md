@@ -22,6 +22,8 @@ Harvested from Shiori, three weeks after 0.1.
   icons picked from numbered library boards.
 - Rule `19-android` and the `android` stack: the Android app mirrors iOS file by file and
   catches up before every release; one GraphQL contract; strings from the iOS catalogue.
+- Android components follow atomic design, stay pure and carry a `@Preview`, checked by
+  `templates/android/scripts/check-android-components.ts` in `build-android`.
 - A UI change is validated twice, board then app (`01-workflow`); iteration rounds on one piece
   of UI are one commit (`02-commits`); short labels, no tag for the app's own language
   (`08-copy`); empty states, blur never darken, no `Menu` in a `GlassEffectContainer`, and a
@@ -58,6 +60,8 @@ Run `bunx stack sync`, then each migration, in this order:
   `nitro.config.ts`, `infra/function.tf`; build and run the bundle locally before pushing.
 - `request-cache-scopes` (review, backend): `request-cache.ts` and its test, `nightly-pass.ts`,
   `fake-firestore.ts`.
+- `android-components-previewed` (review, android): the components check, a preview surface,
+  a `@Preview` in every component file, the check in `build-android.yml`.
 - Machine: install the `ios-disk-cleanup` routine (desktop scheduled task, Mondays 10:00).
 
 ## 0.1.2 (2026.10.24)

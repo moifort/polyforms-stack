@@ -26,6 +26,21 @@ where a feature is designed, built and validated; Android follows.
 - Android conventions win only where the platform imposes them: the back gesture, system bars,
   the share sheet, permissions, date pickers.
 
+## Components
+
+As on iOS ([10-ios.md](10-ios.md)):
+
+- `shared/components/{atoms,molecules,organisms,styles}`, and in each feature
+  `components/{molecules,organisms,pages}`, beside the connected `…Screen`, view model and client.
+- Everything under a `components/` folder is pure: it never calls the GraphQL client or a
+  client's `live`, holds no view model, never listens to or posts change notices, never reads
+  the application context or a singleton such as the push registrar.
+- Every file declaring a composable ends with a `@Preview`, drawn inside one shared preview
+  surface (the theme, a navigator, the grouped background) from the debug fixtures, never from
+  the server. A file holding several composables previews them together.
+- `scripts/check-android-components.ts` enforces both rules; `build-android` runs it before
+  Gradle.
+
 ## One API contract
 
 - Apollo Kotlin generates from the iOS operation documents (`ios/<App>/**/*.graphql`) and
