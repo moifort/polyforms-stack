@@ -1,6 +1,6 @@
 {
   "name": "@moifort/stack",
-  "version": "0.2.0",
+  "version": "0.4.0",
   "description": "The Polyforms stack: rules, skills, hooks, routines and templates for a Firebase + iOS app, versioned and upgraded through Renovate.",
   "license": "MIT",
   "repository": "github:moifort/polyforms-stack",
