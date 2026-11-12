@@ -55,11 +55,12 @@ kinds of credentials:
   bootstrap process only, never written to a file, never printed, never committed. Each token is
   fine-grained and scoped to the organisation, with an expiry, and its creation date is in the
   person's `project-context.md`.
-- **The CI never holds a personal token.** What a workflow needs at run time is a repository
-  secret Terraform wrote (a DSN, a store API key) or a token it mints itself: Renovate runs
-  with a GitHub App installed on the organisation (the workflow mints a short-lived token from
-  the app's private key, stored once as an organisation secret), not with a personal token
-  that expires.
+- **One token in the CI, Renovate's.** What a workflow needs at run time is a repository secret
+  Terraform wrote (a DSN, a store API key). The one exception is Renovate, which opens pull
+  requests and so needs a token of its own: the `RENOVATE_TOKEN` repository secret, read by
+  `.github/workflows/renovate.yml`, able to read the Dependabot alerts
+  ([11-ops.md](11-ops.md#dependencies)), and listed with the other tokens in
+  `project-context.md`.
 - **Replayable.** Every step of the bootstrap checks whether it is already done and skips it,
   so a run that failed halfway is simply run again. It never deploys the backend itself: it
   ends by pushing the first commit and letting the Deploy workflow do the first deploy.

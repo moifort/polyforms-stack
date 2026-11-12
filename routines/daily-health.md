@@ -1,7 +1,7 @@
 ---
 id: daily-health
 scope: project
-runtime: cloud
+runtime: desktop
 cadence: "0 12 * * *"
 title: "{{APP_NAME}} health (daily at noon)"
 ---

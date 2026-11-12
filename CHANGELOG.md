@@ -39,10 +39,16 @@ An audit of the package against itself: what the rules say and what the package 
 - No project name left in the rules, the migrations and the templates; the push hook's comment
   and message are in English; the `stack-install` skill lists the `android` stack and says
   `init` stops on a missing placeholder instead of asking.
+- Routine `daily-health` is a desktop task: it reads production through the observer `gcloud`
+  configuration, which only the machine holds. It was declared `cloud` (`16-routines`).
+- Renovate runs with the `RENOVATE_TOKEN` repository secret, as its workflow always did;
+  `14-infra` described a GitHub App.
 
 ### Upgrade
 - `bunx stack sync`, then update the `stack-upgrade` scheduled task from
   `stack/routines/stack-upgrade.md`.
+- Machine: `daily-health` runs as a desktop scheduled task; a cloud task created for it is
+  deleted.
 - `.github/workflows/renovate.yml` and `nitro.config.ts` changed in a comment only: nothing to
   copy.
 
