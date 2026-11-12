@@ -187,8 +187,8 @@ name or identifier (denylist kept outside the published files).
 ## Delivery order
 
 1. **Rule harvest** (this is the next spec): Shiori first, then `dev-playbook`, Vinarium, Shuhari,
-   Bazar and Claude's memories; conflicts resolved by the review in
-   [2026-10-21-rule-harvest-review.md](2026-10-21-rule-harvest-review.md). Ships as `1.0.0` with no
+   Bazar and Claude's memories; conflicts resolved by a review document, deleted
+   once the rules were written (it is in the history). Ships as `1.0.0` with no
    migration.
 2. **Executable templates**: Shiori's workflows, Terraform, scripts, neutralised.
 3. **CLI, skills, hooks, release workflow.**
