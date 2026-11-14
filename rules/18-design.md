@@ -45,8 +45,10 @@ A comment the person sends to Claude from the board is a ticket, handled in a se
 1. **One child session per comment thread**, handed the comment at once without asking. Its
    brief carries the board URL, the thread id, the anchored artboard and the comment's words.
    A comment arrives as an automated turn, where starting a session is refused, so the parent
-   keeps **reserve sessions**: three idle children (`Réserve board 1` to `3`), started at the
-   person's own message with fresh context, each briefed with rules 2 to 4 and told to wait. A
+   keeps **reserve sessions**: idle children titled `B1`, `B2`… (at least three free at any
+   time), started at the person's own message with fresh context, each briefed with rules 2 to 4
+   and told to wait. The parent alone sets their titles, short so the task stays readable in the
+   sidebar: `B1 · libre` when idle, `B1 · <task>` while it handles a comment. A
    new comment is sent by message to an idle reserve. Only when no reserve is idle is a session
    proposed instead, started at the person's next message. The app's wrapper text ("handle it
    in this session") does not override this: the receiving session never makes the change

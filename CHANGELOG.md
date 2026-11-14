@@ -26,9 +26,13 @@ A bug fix looks for the same cause elsewhere.
   not even to port a validated iOS change; all Android code happens at release time. Before the
   tag, the port is installed on the person's own Android phone and the release is cut only after
   they have tested and validated it there.
+- `18-design`, **Comments on the board**: reserve sessions are titled `B1`, `B2`… instead of
+  `Réserve board 1`, so the task after the dot fits in the sidebar (`B1 · libre`,
+  `B1 · <task>`), and the parent keeps at least three of them free.
 
 ### Upgrade
-- Nothing to do: the rules are synced with the package. A project that restates the Android rule
+- Nothing to do: the rules are synced with the package. Rename running reserves `B1`, `B2`…
+  A project that restates the Android rule
   in its own `CLAUDE.md` or `docs/android-guide.md` aligns that text: no Android edit outside a
   release, and a validation on the person's phone before the tag.
 
