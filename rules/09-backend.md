@@ -27,6 +27,23 @@ domains, no business logic of its own), and `infrastructure/{repository.ts, grap
 - Functional style: no class, no object interface. Polymorphism is a discriminated union on a
   literal field; on the API side a union, never an interface.
 
+### External APIs and shared helpers
+
+- **An external API has one client**, under `server/system/<name>/`: its endpoint, key, headers,
+  error handling and logging written once. Each caller keeps its own request, its parsing, its
+  timeout and its retries. A free API is asked under the server's name, `USER_AGENT` of
+  `server/utils/fetch.ts`, through `fetchJson`.
+- **Secrets kept for a user** (device credentials, refresh tokens) are sealed by a vault built
+  with `credentialsVault` of `server/system/secret-box.ts`, one key per integration, so each can
+  rotate or lose its key without the others.
+- **A nightly pass over the users** goes through `server/utils/nightly-pass.ts`
+  (`passOverReaders`, `syncEveryConnectedReader`, `NIGHTLY_BUDGET_MS`), never a loop of its own.
+- **Accents are ignored** through `withoutAccents` or `foldedText` of `server/utils/slug.ts`,
+  never a hand-written `normalize('NFD')`: two foldings that differ by one character make two
+  keys for one thing.
+- **A page size** asked by a GraphQL list is clamped by `pageSizeOf` of
+  `server/domain/shared/graphql/pagination.ts`, with the list's own default and ceiling.
+
 ## Types
 
 No bare primitive in a domain model: every field carries a branded type (`ts-brand`) with its

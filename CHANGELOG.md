@@ -11,6 +11,35 @@ upgrades to it:
 The upgrade routine reads the **Upgrade** part first, and the release tag carries the whole
 section as its message.
 
+## 0.8.0 (2026.11.14)
+
+What a backend wrote several times is written once: external API clients, accent folding, page
+sizes, credential vaults, nightly syncs.
+
+### New
+- `server/utils/fetch.ts`: `USER_AGENT` (the server's name for free APIs) and `fetchJson`, which
+  throws on an answer that is not a success, naming the host and the status.
+- `server/utils/slug.ts`: `withoutAccents` (the combining marks dropped, as `slugify` always did)
+  and `foldedText` (no accents, case or surrounding space), with `slug.unit.test.ts`, whose table
+  pins `slugify`'s output.
+- `server/system/secret-box.ts`: `credentialsVault`, a vault for one integration's credentials,
+  sealed with its own key, with `openIfReadable` for credentials whose key is gone.
+- `server/utils/nightly-pass.ts`: `NIGHTLY_BUDGET_MS` and `syncEveryConnectedReader`, the
+  nightly pass over connected accounts with its failure and budget logging.
+- `server/domain/shared/graphql/pagination.ts`: `pageSizeOf`, a GraphQL list's page size between
+  one and its ceiling.
+
+### Changed
+- `09-backend`, **External APIs and shared helpers**: one client per external API under
+  `server/system/<name>/`, its callers keeping their request, parsing and timeout; secrets sealed
+  per integration by `credentialsVault`; nightly passes through `nightly-pass.ts`; accents folded
+  by `withoutAccents`; page sizes clamped by `pageSizeOf`.
+
+### Upgrade
+- `shared-clients` (review): copy the new helpers, pin `slugify` with a table of its current
+  output before anything else, then replace the hand-written foldings, page-size clamps, vaults,
+  nightly loops and duplicated API transports.
+
 ## 0.7.0 (2026.11.14)
 
 Repositories read as one family: shared helpers instead of copies, one convention each.
