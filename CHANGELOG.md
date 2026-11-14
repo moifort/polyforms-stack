@@ -34,8 +34,15 @@ sizes, credential vaults, nightly syncs.
   `server/system/<name>/`, its callers keeping their request, parsing and timeout; secrets sealed
   per integration by `credentialsVault`; nightly passes through `nightly-pass.ts`; accents folded
   by `withoutAccents`; page sizes clamped by `pageSizeOf`.
+- `18-design`, **Comments on the board**, new rule 6: the parent tracks every ticket it hands to
+  a child. After each of the child's turns and each message from the person, it checks the ticket
+  against the child's transcript, the thread and the commits. A ticket left untouched is sent
+  back to its child. A resolved thread alone proves nothing.
 
 ### Upgrade
+- Board-comment workflow: add the parent's ticket check to the project's `CLAUDE.md` (the rule
+  on standby sessions) and to `docs/board.md`. Check with
+  `grep -n "checks that every ticket" CLAUDE.md docs/board.md`.
 - `shared-clients` (review): copy the new helpers, pin `slugify` with a table of its current
   output before anything else, then replace the hand-written foldings, page-size clamps, vaults,
   nightly loops and duplicated API transports.

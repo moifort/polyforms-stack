@@ -64,8 +64,17 @@ A comment the person sends to Claude from the board is a ticket, handled in a se
 4. **A comment goes to the session working on its theme** (the artboards and screens it is
    changing); the parent picks up only comments on a theme no child is working on.
 5. When the person archives or deletes a child themself, the parent resolves its thread, unasked.
+6. **The parent checks that every ticket it hands out is handled.** A child often receives a
+   ticket and never acts on it: the message waits in a queue, or it handles one request out of
+   several. The parent keeps the list of the tickets it sent (thread or request, child, time).
+   Each time a child ends a turn, and on each of the person's messages, it checks every open
+   ticket against the child's transcript, the board's thread and the commits. A resolved thread
+   is not proof on its own: the board must have been republished, or the commit must exist. A
+   ticket with no trace goes back to its child, and the person hears of it in one line. A child
+   that says it is done or « Réserve libérée » with a ticket untouched is not cleared until that
+   ticket is handled.
 
-Every child brief restates rules 2 to 4.
+Every child brief restates rules 2 to 4; rule 6 is the parent's own.
 
 ## Mockups
 
