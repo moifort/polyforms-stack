@@ -21,8 +21,16 @@ A bug fix looks for the same cause elsewhere.
   it, and between the two sides of one piece of data (a list and its page, a client and its
   server). Every place found is fixed in the same work, and the report says where it looked.
 
+### Changed
+- `19-android`, **Android follows iOS**: `android/` is never edited during feature or fix work,
+  not even to port a validated iOS change; all Android code happens at release time. Before the
+  tag, the port is installed on the person's own Android phone and the release is cut only after
+  they have tested and validated it there.
+
 ### Upgrade
-- Nothing to do: the rule is synced with the package.
+- Nothing to do: the rules are synced with the package. A project that restates the Android rule
+  in its own `CLAUDE.md` or `docs/android-guide.md` aligns that text: no Android edit outside a
+  release, and a validation on the person's phone before the tag.
 
 ## 0.5.0 (2026.11.12)
 

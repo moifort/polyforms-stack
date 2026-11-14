@@ -5,12 +5,16 @@ where a feature is designed, built and validated; Android follows.
 
 ## Android follows iOS, and catches up before every release
 
-- `android/` is never where a feature starts.
+- `android/` is never where a feature starts, and never edited during feature or fix work: no
+  Kotlin port, no string regeneration, even when the iOS change is validated. The only Android
+  code happens at release time. Building Android to check that a shared `.graphql` edit still
+  compiles is allowed; changing `android/` to make it compile waits for the release too.
 - When a release is asked for, before tagging `ios-v*`: list the iOS commits since the previous
   release (`git log ios-v<previous>..HEAD -- ios shared`), port each one to the Kotlin file of the
   same name, regenerate the strings, build and test Android, capture the changed screens on the
-  emulator, then cut both releases with the same version (`ios-v*` and `android-v*`). No release
-  is cut while Android lags.
+  emulator, then install the build on the person's own Android phone and wait for them to test it
+  and validate. Only after that yes are both releases cut with the same version (`ios-v*` and
+  `android-v*`). No release is cut while Android lags or is unvalidated.
 - The project's `docs/android-guide.md` holds the mapping table and the stack versions.
 
 ## The mirror
