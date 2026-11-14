@@ -71,7 +71,13 @@ export const save = async (order: Order) => {
 - Flat collections, `userId` on every private document, every query filters on it.
 - A memoised read is evicted or revised by every write under its key.
 - Several writes: `atomically(batch => ...)`; read-modify-write: `transactionally(tx => ...)`;
-  mass delete: `deleteInBatches`.
+  many writes: `setInBatches`; mass delete: `deleteInBatches`; an account deletion:
+  `deleteAllOwnedBy(collection, userId)`.
+- Documents read by id: `findDocuments(collection, ids)` (or `findDocumentsPerRequest` when other
+  resolvers of the request read the same ones), never `db().getAll` by hand.
+- A document per user (`oneDocumentPerUser`) or per user and key (`oneDocumentPerUserAndKey`):
+  the factories of `~/utils/user-documents`, keyed by `compositeId(userId, key)`.
+- An absent document is `undefined`, never `null`; functions are `find…`, `save…`, `remove…`.
 - Filter, sort and page in Firestore. A new composite query adds its index to
   `firestore.indexes.json` in the same commit.
 

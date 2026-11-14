@@ -11,6 +11,36 @@ upgrades to it:
 The upgrade routine reads the **Upgrade** part first, and the release tag carries the whole
 section as its message.
 
+## 0.7.0 (2026.11.14)
+
+Repositories read as one family: shared helpers instead of copies, one convention each.
+
+### New
+- `server/utils/firestore.ts`: `findDocuments` and `findDocumentsPerRequest` (documents read by
+  id, each asked once, nothing read for none, the second memoized per document), `readDocuments`,
+  `setInBatches` (400 writes a batch), `deleteAllOwnedBy` (an account deletion) and `compositeId`
+  (a document id made of several parts, joined with `~`), with `firestore.int.test.ts`.
+- `server/utils/user-documents.ts`: `oneDocumentPerUser` and `oneDocumentPerUserAndKey`, the two
+  shapes most private documents take, built once for every repository that stores one; the
+  second reads a legacy id as a fallback while a migration moves the documents.
+
+### Changed
+- `09-backend`, **Storage**: an absent document is `undefined` through the repositories,
+  commands, queries and use cases (`null` only at the GraphQL boundary); repository functions are
+  `find…`, `save…`, `remove…` unless the name is a business concept; composite ids are built by
+  `compositeId`; the helpers are listed and never copied. **Architecture**: imports go through
+  the `~/` alias. The `domain` skill says the same.
+- The template's user repository answers `undefined` for a missing profile and reads profiles
+  with `findDocuments`.
+
+### Upgrade
+- `firestore-helpers` (review): copy the new helpers and replace the hand-written reads by id,
+  account deletions and batch loops; fold twin repositories into one implementation.
+- `repository-conventions` (review): `undefined` for an absent document, `find`/`save`/`remove`
+  names, `~/` imports.
+- `composite-ids` (review): build composite ids with `compositeId` and move the stored documents
+  with a data migration, reading the legacy id until it has run in production.
+
 ## 0.6.0 (2026.11.14)
 
 A bug fix looks for the same cause elsewhere.

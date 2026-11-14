@@ -19,6 +19,8 @@ domains, no business logic of its own), and `infrastructure/{repository.ts, grap
   `namespace-to-module-imports` migration of this package.
 - The repository is bare exported functions (`import * as repository`), private to its domain. A
   domain that needs another goes through that domain's `Query` or `Command`, never its storage.
+- Imports go through the `~/` alias (`~/domain/book/types`), never a relative `../` or `./` path:
+  a file reads the same wherever it moves, and a search for a module finds every user of it.
 - A function's name carries the business concept, never the technical pattern: `versionToOpen`,
   not `computeVersion` or `handleX`. One concept, one word, at every layer: domain, schema, app,
   tests.
@@ -47,8 +49,22 @@ an absence, it is an inconsistent state, throw; if it is a normal scenario, retu
 ## Storage
 
 Native Firestore through `db()`, only inside `infrastructure/repository.ts`, with the shared
-helpers (converter, transactional read-modify-write, bulk save, delete in batches, per-request
-memoisation).
+helpers of `server/utils/firestore.ts` (converter, `withoutAbsentFields`, transactional
+read-modify-write, `findDocuments` and `findDocumentsPerRequest` for documents read by id,
+`setInBatches`, `deleteInBatches`, `deleteAllOwnedBy` for an account deletion, `compositeId`) and of
+`server/system/request-cache.ts` (per-request memoisation). A document per user, or per user and
+key, is built from the two factories of `server/utils/user-documents.ts`, the repository keeping
+its collection (opened in its own file) and its exported names. A helper is written once there,
+never copied into a second repository.
+
+- **Absence is `undefined`.** A repository answers `undefined` for a document that does not exist,
+  which is what Firestore's `.data()` gives, and the commands, queries and use cases pass it on
+  as such. `null` appears only at the GraphQL boundary.
+- **Names say the operation**: `find…` reads, `save…` writes, `remove…` deletes, unless the name
+  carries a business concept (`consume`, `markNotified`, `revise`).
+- **A document id made of several parts** (a user and what they hold, a resource and its
+  language) is built by `compositeId`, which joins the parts with `~`, never by hand. Its parts
+  are ones that cannot hold a `~`: generated ids, hashes, months, slugs.
 
 - **Collections are flat.** Never a subcollection: every document sits in a top-level collection
   and names its owner in a `userId` field. Accounts live in `users/{userId}`. Every query filters
