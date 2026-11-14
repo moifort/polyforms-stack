@@ -42,6 +42,23 @@ The three test families run **separately** (`bun run test:unit`, `bun run test:i
 `bun run test:feat`): a module mock declared in one test file serves every file of the same
 run, so a single combined run passes while CI, which runs them apart, goes red.
 
+## Fixing a bug: look for it elsewhere
+
+A bug is rarely alone. Once its cause is found, and before calling the fix done, look for the
+same cause wherever else it can live, then fix every place found in the same piece of work:
+
+- **The same mechanism in other features.** The pattern that failed (a fallback missing, a key
+  computed twice, a field read from a different place) is searched across the code, not only in
+  the screen reported. Every list, page or job built the same way is checked.
+- **What the feature uses, and what uses it.** The shared component, query, resolver or helper
+  the bug passes through serves other features: each one is checked for the same symptom.
+- **The two sides of one piece of data.** When a list and the page it opens, or a client and its
+  server, show the same thing differently, the data has two sources: the fix makes it one, on the
+  server, rather than patching one of the two readers.
+
+The report says where else the cause was looked for, what was found and fixed, and what was
+checked and found clean. A place that has the bug and is left for later is named, never silent.
+
 ## Mockups before a complex screen
 
 A new feature with screens and real complexity (a new flow, several states, a layout nobody has

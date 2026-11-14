@@ -11,6 +11,19 @@ upgrades to it:
 The upgrade routine reads the **Upgrade** part first, and the release tag carries the whole
 section as its message.
 
+## 0.6.0 (2026.11.14)
+
+A bug fix looks for the same cause elsewhere.
+
+### New
+- `01-workflow`, **Fixing a bug: look for it elsewhere**: once a bug's cause is found, the same
+  mechanism is searched across the other features, through what the feature uses and what uses
+  it, and between the two sides of one piece of data (a list and its page, a client and its
+  server). Every place found is fixed in the same work, and the report says where it looked.
+
+### Upgrade
+- Nothing to do: the rule is synced with the package.
+
 ## 0.5.0 (2026.11.12)
 
 Board comments go to reserve sessions that are recycled, not archived.
