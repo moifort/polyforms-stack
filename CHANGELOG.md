@@ -38,8 +38,15 @@ sizes, credential vaults, nightly syncs.
   a child. After each of the child's turns and each message from the person, it checks the ticket
   against the child's transcript, the thread and the commits. A ticket left untouched is sent
   back to its child. A resolved thread alone proves nothing.
+- `18-design`, new section **Keeping the board alive**: the session that created the board is
+  never deleted (archiving is fine), its id is written next to the board link, a new board is
+  created in a session kept for that purpose, and bulk session deletions skip it.
 
 ### Upgrade
+- Board creating session: find the session that first published the board (the earliest
+  transcript in `~/.claude/projects/<project>/` that names its URL) and write its id next to the
+  board link in `project-context.md`, or note that it is already gone. Check with
+  `grep -n "creating session" project-context.md`.
 - Board-comment workflow: add the parent's ticket check to the project's `CLAUDE.md` (the rule
   on standby sessions) and to `docs/board.md`. Check with
   `grep -n "checks that every ticket" CLAUDE.md docs/board.md`.

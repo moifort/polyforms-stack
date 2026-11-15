@@ -3,6 +3,19 @@
 Applies to a project that keeps a design board: a Design (canvas) artifact on claude.ai holding
 one artboard per screen. Its link is in the project's `project-context.md`.
 
+## Keeping the board alive
+
+An artifact belongs to the session that first published it, and deleting that session can
+delete the artifact, possibly days later. On 2026-11-15 a project's board (303 artboards)
+vanished without anyone deleting it, about two weeks after the session that created it had been
+deleted (case open with support, cause unconfirmed).
+
+- **The session that created the board is never deleted.** Archiving it is fine. Its id is
+  written next to the board link in `project-context.md`, so nobody deletes it by mistake.
+- A new board is created in a session kept for that purpose (titled "<Project> Board · ne pas
+  supprimer"), never in a throwaway or child session.
+- Before deleting sessions in bulk, check that none of them is a board's creating session.
+
 ## Board first, the app in sync
 
 The board and the app are always in sync.
