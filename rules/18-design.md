@@ -83,6 +83,9 @@ A comment the person sends to Claude from the board is a ticket, handled in a se
    ([02-commits.md](02-commits.md#several-sessions-on-one-project)). Its iOS validation then
    reads « Valider et fusionner dans main ». The board itself stays shared: a refused publish is
    merged with the live version.
+   Once the child is done, the parent checks that its worktree and branch are gone and `main` is
+   clean, and cleans up what the child left; it sweeps stale worktrees on each of the person's
+   messages, reporting rather than deleting any that hold unmerged work.
 6. **The parent checks that every ticket it hands out is handled.** A child often receives a
    ticket and never acts on it: the message waits in a queue, or it handles one request out of
    several. The parent keeps the list of the tickets it sent (thread or request, child, time).

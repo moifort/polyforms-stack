@@ -63,7 +63,11 @@ its task is done. If it already edited files on `main`, it carries only its own 
 this: when it hands code work to a child while another is already changing code, the brief tells
 the child to work in a worktree. The merge is part of the person's validation (« Valider et
 fusionner dans main »): on that yes, the child rebases onto `main`, fast-forwards `main`, then
-removes its worktree. It never pushes. A fresh worktree lacks the
+removes its worktree. It never pushes. When the child is done, the orchestrator checks that the worktree is
+gone, its branch merged and deleted, and `main` clean (`git worktree list`, `git branch`,
+`git status`), and cleans up whatever the child left. It does the same sweep on each of the
+person's messages: a worktree with no live session and nothing unmerged is removed, and one
+holding unmerged or uncommitted work is reported to the person, never deleted. A fresh worktree lacks the
 gitignored files the build needs (app secrets, Firebase plist, package resolution, generated API
 client): copy them from the main checkout first, see [15-tooling.md](15-tooling.md).
 

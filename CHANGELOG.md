@@ -44,6 +44,8 @@ sizes, credential vaults, nightly syncs.
 - `02-commits`, **Several sessions on one project**: only one session changes code in the main
   checkout; a second one moves into its own worktree (carrying only its own files over), and an
   orchestrating session's brief says so. The merge into `main` is part of the person's validation.
+  The orchestrator then checks that the worktree and branch are gone and `main` is clean, and
+  sweeps stale worktrees on each of the person's messages.
 
 ### Upgrade
 - Board creating session: find the session that first published the board (the earliest
