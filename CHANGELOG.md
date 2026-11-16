@@ -30,6 +30,8 @@ sizes, credential vaults, nightly syncs.
   one and its ceiling.
 
 ### Changed
+- `10-ios`, **Loading and failures**: a tap navigates at once, with what the list knows and a
+  loader for the rest; nothing is awaited before the push.
 - `09-backend`, **External APIs and shared helpers**: one client per external API under
   `server/system/<name>/`, its callers keeping their request, parsing and timeout; secrets sealed
   per integration by `credentialsVault`; nightly passes through `nightly-pass.ts`; accents folded
@@ -49,6 +51,9 @@ sizes, credential vaults, nightly syncs.
   unmerged work is saved as a patch.
 
 ### Upgrade
+- Tap-to-open (review): find every navigation that awaits a request before pushing
+  (`grep -rn "await" ` near `navigationDestination`/`path.append`/`NavigationLink` actions) and
+  move the load into the destination page.
 - Board creating session: find the session that first published the board (the earliest
   transcript in `~/.claude/projects/<project>/` that names its URL) and write its id next to the
   board link in `project-context.md`, or note that it is already gone. Check with

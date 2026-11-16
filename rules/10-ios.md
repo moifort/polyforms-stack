@@ -74,6 +74,11 @@ Every network call shows that it runs, except a refresh over content already on 
 with nothing yet shows a `ProgressView` in its body, never full screen over the chrome. A button
 that triggers a mutation shows its progress and is disabled while it runs.
 
+**A tap navigates at once.** Tapping a cover, a row or a link pushes the page in the same frame,
+with what the list already knows (cover, title) and a loader for the rest. The page loads
+itself; nothing is awaited before the push. A tap that seems to do nothing while a request
+runs is a bug, wherever it happens.
+
 - Over content already on screen, a failure says nothing: the rows stay. Replacing a good list
   with an empty one reads as data loss. The error still goes to Sentry.
 - Over an empty screen, `EmptyState.failure(title, message, retry)`.
