@@ -66,8 +66,9 @@ fusionner dans main »): on that yes, the child rebases onto `main`, fast-forwar
 removes its worktree. It never pushes. When the child is done, the orchestrator checks that the worktree is
 gone, its branch merged and deleted, and `main` clean (`git worktree list`, `git branch`,
 `git status`), and cleans up whatever the child left. It does the same sweep on each of the
-person's messages: a worktree with no live session and nothing unmerged is removed, and one
-holding unmerged or uncommitted work is reported to the person, never deleted. A fresh worktree lacks the
+person's messages: a worktree with no live session is removed without asking. If it holds
+uncommitted or unmerged work, that work is first saved as a patch under `build/stale-worktrees/`
+(`git diff` plus `git log main..HEAD -p`), and the person hears of it in one line. A fresh worktree lacks the
 gitignored files the build needs (app secrets, Firebase plist, package resolution, generated API
 client): copy them from the main checkout first, see [15-tooling.md](15-tooling.md).
 

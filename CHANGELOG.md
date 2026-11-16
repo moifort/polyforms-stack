@@ -45,7 +45,8 @@ sizes, credential vaults, nightly syncs.
   checkout; a second one moves into its own worktree (carrying only its own files over), and an
   orchestrating session's brief says so. The merge into `main` is part of the person's validation.
   The orchestrator then checks that the worktree and branch are gone and `main` is clean, and
-  sweeps stale worktrees on each of the person's messages.
+  sweeps stale worktrees on each of the person's messages, removing them without asking once any
+  unmerged work is saved as a patch.
 
 ### Upgrade
 - Board creating session: find the session that first published the board (the earliest
