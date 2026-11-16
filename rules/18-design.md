@@ -59,7 +59,7 @@ A comment the person sends to Claude from the board is a ticket, handled in a se
    brief carries the board URL, the thread id, the anchored artboard and the comment's words.
    A comment arrives as an automated turn, where starting a session is refused, so the parent
    keeps **reserve sessions**: idle children titled `B1`, `B2`… (at least three free at any
-   time), started at the person's own message with fresh context, each briefed with rules 2 to 4
+   time), started at the person's own message with fresh context, each briefed with rules 2 to 4 and 7
    and told to wait. The parent alone sets their titles, short so the task stays readable in the
    sidebar: `B1 · libre` when idle, `B1 · <task>` while it handles a comment. A
    new comment is sent by message to an idle reserve. Only when no reserve is idle is a session
@@ -77,6 +77,12 @@ A comment the person sends to Claude from the board is a ticket, handled in a se
 4. **A comment goes to the session working on its theme** (the artboards and screens it is
    changing); the parent picks up only comments on a theme no child is working on.
 5. When the person archives or deletes a child themself, the parent resolves its thread, unasked.
+7. **One child on `main`, the others in worktrees.** When a child is handed code work while
+   another is already changing code, the parent tells it to work in its own worktree, carrying
+   over only its own files if it had started on `main`
+   ([02-commits.md](02-commits.md#several-sessions-on-one-project)). Its iOS validation then
+   reads « Valider et fusionner dans main ». The board itself stays shared: a refused publish is
+   merged with the live version.
 6. **The parent checks that every ticket it hands out is handled.** A child often receives a
    ticket and never acts on it: the message waits in a queue, or it handles one request out of
    several. The parent keeps the list of the tickets it sent (thread or request, child, time).
@@ -87,7 +93,7 @@ A comment the person sends to Claude from the board is a ticket, handled in a se
    that says it is done or « Réserve libérée » with a ticket untouched is not cleared until that
    ticket is handled.
 
-Every child brief restates rules 2 to 4; rule 6 is the parent's own.
+Every child brief restates rules 2 to 4 and 7; rule 6 is the parent's own.
 
 ## Mockups
 

@@ -54,8 +54,16 @@ Work lands on `main`. No feature branch, no pull request, unless asked.
 
 ## Several sessions on one project
 
-When several Claude sessions work on the same project at once, **each session works in its own git
-worktree** and merges into `main` when its task is done. A fresh worktree lacks the
+When several Claude sessions work on the same project at once, **only one of them changes code
+in the main checkout**. As soon as a second session starts changing code, it moves into its own git
+worktree (`<project>/build/wt-<session>`, on a branch of its own) and merges into `main` when
+its task is done. If it already edited files on `main`, it carries only its own files over
+(`git diff -- <its files>` applied in the worktree, then `git checkout -- <its files>` on
+`main`) and leaves every other session's files untouched. An orchestrating session enforces
+this: when it hands code work to a child while another is already changing code, the brief tells
+the child to work in a worktree. The merge is part of the person's validation (« Valider et
+fusionner dans main »): on that yes, the child rebases onto `main`, fast-forwards `main`, then
+removes its worktree. It never pushes. A fresh worktree lacks the
 gitignored files the build needs (app secrets, Firebase plist, package resolution, generated API
 client): copy them from the main checkout first, see [15-tooling.md](15-tooling.md).
 

@@ -41,6 +41,9 @@ sizes, credential vaults, nightly syncs.
 - `18-design`, new section **Keeping the board alive**: the session that created the board is
   never deleted (archiving is fine), its id is written next to the board link, a new board is
   created in a session kept for that purpose, and bulk session deletions skip it.
+- `02-commits`, **Several sessions on one project**: only one session changes code in the main
+  checkout; a second one moves into its own worktree (carrying only its own files over), and an
+  orchestrating session's brief says so. The merge into `main` is part of the person's validation.
 
 ### Upgrade
 - Board creating session: find the session that first published the board (the earliest
@@ -50,6 +53,9 @@ sizes, credential vaults, nightly syncs.
 - Board-comment workflow: add the parent's ticket check to the project's `CLAUDE.md` (the rule
   on standby sessions) and to `docs/board.md`. Check with
   `grep -n "checks that every ticket" CLAUDE.md docs/board.md`.
+- Parallel sessions: replace any "work on main, never in a worktree" in the project's standby
+  brief (`CLAUDE.md`, `docs/board.md`) with the one-on-main rule of `02-commits`. Check with
+  `grep -n "jamais dans un worktree\|never in a worktree" CLAUDE.md docs/board.md`.
 - `shared-clients` (review): copy the new helpers, pin `slugify` with a table of its current
   output before anything else, then replace the hand-written foldings, page-size clamps, vaults,
   nightly loops and duplicated API transports.
