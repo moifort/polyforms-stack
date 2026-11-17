@@ -11,6 +11,25 @@ upgrades to it:
 The upgrade routine reads the **Upgrade** part first, and the release tag carries the whole
 section as its message.
 
+## 0.9.0 (2026.11.17)
+
+The daily health pass also says who uses the app, and checks every scheduled job on its own.
+
+### Changed
+- `routines/daily-health.md`: new section 2b, User activity: users and new users (admin metrics
+  projection), analytics sessions per day, requests, devices, builds and 5xx per day over 8 days,
+  content added in 24 hours and 7 days, and the trend, telling automated runs from users.
+- `routines/daily-health.md`: Cloud Scheduler is reviewed job by job (schedule, state, last
+  attempt, runs over 8 days with status and latency from the request logs), and the report carries
+  a table of every job; a missed run or a doubled latency is a finding.
+
+### Upgrade
+- `health-activity-and-cron` (review): the running copy of the routine. Add the
+  activity section and the per-job scheduler review to the copy that runs (repository runbook or
+  scheduled task prompt), with the app's content collection and date field. Check with
+  `grep -c "admin-metrics/current\|Google-Cloud-Scheduler" <running copy>` (2 or more), then run the
+  routine once.
+
 ## 0.8.0 (2026.11.14)
 
 What a backend wrote several times is written once: external API clients, accent folding, page

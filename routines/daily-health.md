@@ -9,8 +9,8 @@ title: "{{APP_NAME}} health (daily at noon)"
 Daily production health pass for {{APP_NAME}} (repository `{{CODE_DIR}}/{{REPO_NAME}}`, GCP project
 `{{APP_SLUG}}-polyforms`, region `europe-west3`, backend Cloud Function gen 2 `{{APP_SLUG}}-server`,
 request logs under `resource.type="cloud_run_revision"`). Analyse the last 24 hours of costs,
-performance and monitoring, fix what is broken in code, push to main, watch CI. Report in the
-person's language.
+performance, user activity and monitoring, fix what is broken in code, push to main, watch CI.
+Report in the person's language.
 
 Error logs are out of scope: every `warn` and `error` goes to Sentry and to the `sentry-autofix`
 routine.
@@ -52,11 +52,33 @@ files with an explicit pathspec; never stash, reset, switch branches, amend or f
 - Firestore usage when a cost or latency spike points there. Production data may be read to
   explain a spike; never copy personal data into the report.
 
+## 2b. User activity
+Aggregate figures only: never a name, an email, a user id or an IP address in the report.
+- Users: the admin metrics projection, Firestore document `admin-metrics/current` (`totalUsers`,
+  `newUsers` and `newPremium` this month, `premium.total`, `refreshedAt`); its `sessions.days`
+  carries the analytics sessions per day. Read it over the Firestore REST API with the observer
+  token (keep the `.../databases/(default)/documents` URL single-quoted).
+- New users since the previous pass: compare `totalUsers` and `newUsers` with the figures of the
+  previous report (in the routine's session) or, failing that, give the month's count.
+- Per day over 8 days, from the API request logs: requests, mutations (from the `operation served`
+  lines), distinct devices (approximated by distinct `remoteIp`), app builds seen (first token of
+  `httpRequest.userAgent`), 5xx count.
+- Content added in 24 hours and 7 days: a count aggregation (`runAggregationQuery`) on the app's
+  main content collection, on its creation date field.
+- Say plainly whether activity is rising, stable or falling, and whether a drop looks like an
+  outage (5xx, failed jobs) or just usage. Bursts of hundreds of requests from one build a minute
+  apart, often a simulator's Darwin version, are automated runs (captures, end-to-end tests), not
+  users: say so rather than counting them.
+
 ## 3. Monitoring
 - CI: `gh run list --repo moifort/{{REPO_NAME}} --limit 30 --json databaseId,name,headSha,status,conclusion,createdAt`:
   any failed run on main in 24 h, Deploy first, including its migrations step.
-- Cloud Scheduler: `gcloud scheduler jobs list --project={{APP_SLUG}}-polyforms --location=europe-west3`,
-  state and last attempt of each job; a paused or failed job is a finding.
+- Cloud Scheduler, every job, never one summary line:
+  `gcloud scheduler jobs list --project={{APP_SLUG}}-polyforms --location=europe-west3 --format=json`
+  gives each job's schedule, state, last attempt time and status. Its runs over 8 days come from
+  the request logs, `httpRequest.userAgent:"Google-Cloud-Scheduler"`: status and latency of each.
+  A paused job, a non-200, a run near the function's timeout, a missed run (fewer runs than the
+  schedule implies), or a latency that doubled is a finding.
 - A job answering 200 is not a job doing its work. For each pass that keeps shared documents
   fresh (release watches, catalogues), read the age of what it refreshes (`checkedAt` and the
   like, with a `select` on that field only) and compare it with the pass's cadence and daily cap:
@@ -84,5 +106,7 @@ deprecations). One that missed two cadences is a finding at the top of the repor
 
 ## 5. Report (short)
 One-line verdict first (all fine / fixed / action needed from you). Then Costs (yesterday's total
-and per service versus the 7-day average), Performance (p50, p95, 5xx, instances), Monitoring
-(CI, Deploy, scheduler). Then "Fixed" (hashes, CI result per workflow) and "To decide".
+and per service versus the 7-day average), Performance (p50, p95, 5xx, instances), Activity
+(users and new users, sessions, requests, devices, content added, trend), Monitoring (CI, Deploy,
+and a table of every scheduler job: schedule, state, last run, status, runs over 8 days). Then
+"Fixed" (hashes, CI result per workflow) and "To decide".
