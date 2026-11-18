@@ -101,10 +101,13 @@ A comment the person sends to Claude from the board is a ticket, handled in a se
    behind. It hands out tickets, checks them, recycles the reserves and keeps the checkout
    clean. It edits no app code, builds nothing and opens no simulator; the only files it writes
    are the rules and docs that describe this workflow.
-   - **Children run on the mid-tier model (Sonnet) by default.** The parent sets it
-     (`set_session_model`) and raises one child to a stronger model only for a hard ticket: a
-     performance hunt, a bug that crosses features, a data migration. It puts the model back
-     when it recycles the child.
+   - **Children run on a strong model too (Opus), never the mid-tier one.** The parent sets it
+     (`set_session_model`) and raises one child to the most capable model only for a hard
+     ticket: a performance hunt, a bug that crosses features, a data migration. It puts the
+     model back when it recycles the child. On 2026-11-18 the children were tried on the
+     mid-tier model (Sonnet) to save quota: the first screen it drew was not acceptable, and
+     they went back to Opus the same day. The saving is the parent not coding, not a cheaper
+     child.
    - **One ticket at a time per child.** A second ticket on another theme goes to another
      reserve. When every reserve is busy the parent keeps the queue and tells the person in one
      line.

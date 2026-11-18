@@ -14,20 +14,21 @@ section as its message.
 ## 0.10.0 (2026.11.18)
 
 The orchestrating session only orchestrates, on the strongest model; its children code on a
-cheaper one.
+strong model too.
 
 ### Changed
 - `18-design`, **Comments on the board**, new rule 8: the parent runs on the most capable model
-  and never codes, builds or captures. Children run on the mid-tier model by default, raised for
-  a hard ticket only and put back at recycling. One ticket at a time per child. The parent
-  checks tickets with the cheapest proof first (commits, thread, then the last events of the
-  transcript) to keep its own context small.
+  and never codes, builds or captures. Children run on a strong model (Opus), never the mid-tier
+  one: tried on Sonnet for a day, the first screen it drew was not acceptable. One child is
+  raised to the most capable model for a hard ticket only and put back at recycling. One ticket
+  at a time per child. The parent checks tickets with the cheapest proof first (commits, thread,
+  then the last events of the transcript) to keep its own context small.
 
 ### Upgrade
 - `orchestrator-models` (review): in the project's own copy of the board rules (`CLAUDE.md`,
   `docs/board.md`), add the rule. Then set the orchestrating session to the most capable model in
-  the app's model menu (a session cannot re-price itself) and each reserve to the mid-tier model
-  (`set_session_model`). Check with `get_session` on each reserve: `model` is the mid-tier id.
+  the app's model menu (a session cannot re-price itself) and each reserve to Opus
+  (`set_session_model`). Check with `get_session` on each reserve: `model` is the Opus id.
 
 ## 0.9.0 (2026.11.17)
 
