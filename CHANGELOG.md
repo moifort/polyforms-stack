@@ -22,13 +22,18 @@ strong model too.
   one: tried on Sonnet for a day, the first screen it drew was not acceptable. One child is
   raised to the most capable model for a hard ticket only and put back at recycling. One ticket
   at a time per child. The parent checks tickets with the cheapest proof first (commits, thread,
-  then the last events of the transcript) to keep its own context small.
+  then the last events of the transcript) to keep its own context small. It clears its own
+  conversation at every lull and at least once a day, after rewriting a state file it reads back
+  first. The reserve brief becomes a file (`docs/reserve-brief.md`) that a one-line message
+  points at; one session only relays board comments; a child ends a turn only for a result.
 
 ### Upgrade
 - `orchestrator-models` (review): in the project's own copy of the board rules (`CLAUDE.md`,
   `docs/board.md`), add the rule. Then set the orchestrating session to the most capable model in
   the app's model menu (a session cannot re-price itself) and each reserve to Opus
   (`set_session_model`). Check with `get_session` on each reserve: `model` is the Opus id.
+  Write `docs/reserve-brief.md` from the brief the parent sends today, and create the parent's
+  state file outside the repository, indexed where the parent reads it first.
 
 ## 0.9.0 (2026.11.17)
 

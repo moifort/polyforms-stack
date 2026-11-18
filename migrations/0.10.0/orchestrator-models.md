@@ -17,5 +17,11 @@ with the cheapest proof first, to keep its own context small.
    cannot change its own model.
 3. From the orchestrator, set each reserve to Opus (`set_session_model`).
 
-**Check.** `grep -c "never codes" CLAUDE.md docs/board.md` answers 1 or more per file, and
+4. Move the reserve brief into `docs/reserve-brief.md` and have the parent send one line that
+   points at it.
+5. Create the parent's state file outside the repository (the children and their ids, the open
+   tickets, the questions waiting), and have the parent rewrite it before clearing its own
+   conversation, at every lull and at least once a day.
+
+**Check.** `test -f docs/reserve-brief.md`. `grep -c "never codes" CLAUDE.md docs/board.md` answers 1 or more per file, and
 `get_session` on each reserve reports the Opus model id.

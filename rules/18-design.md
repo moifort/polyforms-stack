@@ -115,6 +115,17 @@ A comment the person sends to Claude from the board is a ticket, handled in a se
      it. It checks a ticket with the cheapest proof first: the commits, then the thread, then
      only the last events of the child's transcript. It never reads a whole transcript, renders
      no artboard and takes no capture; those stay in the children.
+   - **The parent clears its own conversation at every lull, and at least once a day.** A lull
+     is a moment when no child is working and no ticket is half handed out. Before clearing, it
+     rewrites its state file (the children and their ids, the open tickets, the questions
+     waiting on the person), kept outside the repository where it is read back first; then it
+     clears itself (`clear_session`, `self`) and starts again from that file and the rules.
+     Nothing the parent needs may live only in its conversation.
+   - **What enters the parent is kept small too.** The reserve brief is a file of the project
+     (`docs/reserve-brief.md`): recycling a child sends one line pointing at it, not the text.
+     One session only relays board comments to the parent. A child ends a turn only when it has
+     something to show the person or a question for them, since every turn it ends wakes the
+     parent.
 
 Every child brief restates rules 2 to 4 and 7; rules 6 and 8 are the parent's own.
 
