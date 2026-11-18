@@ -96,7 +96,24 @@ A comment the person sends to Claude from the board is a ticket, handled in a se
    that says it is done or « Réserve libérée » with a ticket untouched is not cleared until that
    ticket is handled.
 
-Every child brief restates rules 2 to 4 and 7; rule 6 is the parent's own.
+8. **The parent orchestrates and never codes.** It runs on the most capable model, because its
+   mistakes are the expensive ones: a ticket forgotten, two sessions on `main`, a worktree left
+   behind. It hands out tickets, checks them, recycles the reserves and keeps the checkout
+   clean. It edits no app code, builds nothing and opens no simulator; the only files it writes
+   are the rules and docs that describe this workflow.
+   - **Children run on the mid-tier model (Sonnet) by default.** The parent sets it
+     (`set_session_model`) and raises one child to a stronger model only for a hard ticket: a
+     performance hunt, a bug that crosses features, a data migration. It puts the model back
+     when it recycles the child.
+   - **One ticket at a time per child.** A second ticket on another theme goes to another
+     reserve. When every reserve is busy the parent keeps the queue and tells the person in one
+     line.
+   - **The parent keeps its own context small**, since every child turn wakes it and re-reads
+     it. It checks a ticket with the cheapest proof first: the commits, then the thread, then
+     only the last events of the child's transcript. It never reads a whole transcript, renders
+     no artboard and takes no capture; those stay in the children.
+
+Every child brief restates rules 2 to 4 and 7; rules 6 and 8 are the parent's own.
 
 ## Mockups
 
