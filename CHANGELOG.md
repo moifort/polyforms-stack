@@ -11,6 +11,22 @@ upgrades to it:
 The upgrade routine reads the **Upgrade** part first, and the release tag carries the whole
 section as its message.
 
+## 0.10.1 (2026.11.19)
+
+iOS builds are made with Xcode 27.
+
+### Fixed
+- `templates/ios` workflows (`build-ios.yml`, `ios-upload.yml`) and `generated-ios.yml` ran on
+  `macos-26`, whose newest Xcode carries the iOS 26 SDK. App Store Connect warns on every upload
+  (ITMS-90725) and refuses such builds from April 2027. They now run on `xcode-27`, the GitHub
+  image with Xcode 27; `latest-stable` picks its newest final Xcode.
+
+### Upgrade
+- `xcode-27-runner` (safe): in `.github/workflows/build-ios.yml` and `ios-upload.yml`, replace
+  `runs-on: macos-26` with `runs-on: xcode-27`. Check with `grep -n "macos-26" .github/workflows/`
+  (nothing), then run the iOS build workflow: the "Select the latest final Xcode" step prints
+  Xcode 27, and the next upload brings no ITMS-90725 mail.
+
 ## 0.10.0 (2026.11.18)
 
 The orchestrating session only orchestrates, on the strongest model; its children code on a
